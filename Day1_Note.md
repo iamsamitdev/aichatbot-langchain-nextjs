@@ -423,3 +423,6 @@ aichatbot-langchain-nextjs/
 - ใช้ Node.js เวอร์ชั่น 20 ขึ้นไป
 - ต้องมี OpenAI API Key สำหรับการใช้งาน
 - การ Streaming ช่วยให้ผู้ใช้เห็น response แบบ real-time
+
+## สรุป
+ขอให้ทุกคนสนุกกับการสร้าง AI Chatbot ด้วย LangChain และ Next.js! 🚀
