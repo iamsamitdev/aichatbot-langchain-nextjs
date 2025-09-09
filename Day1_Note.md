@@ -104,142 +104,70 @@ npm run build    # สร้าง production build
 npm run start    # เริ่ม production server
 npm run lint     # ตรวจสอบ code ด้วย ESLint
 ```
-
 ---
+## พื้นฐานของ Next.js 15 กับ App Router
 
-## 🎯 API Endpoints พื้นฐาน
+### การสร้าง Pages
+- สร้างไฟล์ในโฟลเดอร์ `src/app` เพื่อสร้างหน้าใหม่
+- ใช้ `page.tsx` สำหรับหน้าเว็บ
+- ใช้ `layout.tsx` สำหรับเลย์เอาต์ที่ใช้ร่วมกัน
 
-### 1. Base API Route (/api/route.ts)
-
-สร้างไฟล์ `src/app/api/route.ts` สำหรับ API endpoints พื้นฐาน:
-
-```typescript
-import { NextResponse } from "next/server";
-
-// Example API route with GET, POST, PUT, DELETE methods
-export async function GET() {
-  return NextResponse.json({ message: "API Running with GET" });
+### ทดสอบแก้ไขหน้าเว็บ `src/app/page.tsx`:
+```tsx
+export default function Home() {
+  return (
+    <>
+      <h1>Welcome to AI Chatbot with LangChain & Next.js</h1>
+      <p>This is the home page.</p>
+    </>
+  )
 }
+```
+### ตัวอย่างการสร้างหน้าใหม่
+สร้างไฟล์ `src/app/about/page.tsx`:
 
-export async function POST() {
-  return NextResponse.json({ message: "API Running with POST" });
+```tsx
+export default function About() {
+  return (
+    <>
+      <h1>About Us</h1>
+      <p>This is the about page.</p>
+    </>
+  )
 }
+```
+### ตัวอย่างการสร้างหน้า contact
+สร้างไฟล์ `src/app/contact/page.tsx`:
 
-export async function PUT() {
-  return NextResponse.json({ message: "API Running with PUT" });
-}
-
-export async function DELETE() {
-  return NextResponse.json({ message: "Delete request received" });
+```tsx
+export default function Contact() {
+  return (
+    <>
+      <h1>Contact Us</h1>
+      <p>This is the contact page.</p>
+    </>
+  )
 }
 ```
 
-**การทดสอบ:**
-- GET: `http://localhost:3000/api`
-- POST: `http://localhost:3000/api`
-- PUT: `http://localhost:3000/api`
-- DELETE: `http://localhost:3000/api`
-
----
-
-### 2. Test API Route (/api/test/route.ts)
-
-สร้างไฟล์ `src/app/api/test/route.ts` สำหรับทดสอบการรับและส่งข้อมูล:
-
-```typescript
-import { NextRequest, NextResponse } from "next/server";
-
-// GET Method Example
-// URL: /api/test?name=John
-// URL: /api/test หรือ http://localhost:3000/api/test?name=John
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const name = searchParams.get("name") || "World";
-  
-  return NextResponse.json({
-    message: `Hello, ${name}!`
-  });
-}
-
-// POST Method Example
-// URL: /api/test
-// Body: { "name": "John" }
-// Content-Type: application/json
-// Headers: { "Content-Type": "application/json" }
-// curl -X POST http://localhost:3000/api/test -d '{"name":"Jane"}'
-export async function POST(request: NextRequest) {
-  const data = await request.json();
-  const name = data.name || "World";
-  
-  return NextResponse.json({
-    message: `Hello, ${name}!`
-  });
-}
-
-// PUT Method Example
-// URL: /api/test
-// Body: { "name": "Jane" }
-// Content-Type: application/json
-// Headers: { "Content-Type": "application/json" }
-// curl -X PUT http://localhost:3000/api/test -d '{"name":"Jane"}'
-export async function PUT(request: NextRequest) {
-  const data = await request.json();
-  const name = data.name || "World";
-  
-  return NextResponse.json({
-    message: `Hello, ${name}!`
-  });
-}
-
-// DELETE Method Example
-// URL: /api/test
-// curl -X DELETE http://localhost:3000/api/test
-export async function DELETE() {
-  return NextResponse.json({
-    message: "Delete request received"
-  });
-}
-```
-
-**การทดสอบ Test API:**
-- GET: `http://localhost:3000/api/test?name=John`
-- POST: ส่ง JSON `{"name": "Jane"}` ไปยัง `http://localhost:3000/api/test`
-- PUT: ส่ง JSON `{"name": "Jane"}` ไปยัง `http://localhost:3000/api/test`
-- DELETE: `http://localhost:3000/api/test`
-
----
-
-## 🤖 AI Chat Endpoint
+## 🤖 ตัวอย่างการสร้าง AI Chat Endpoint
 
 ## การเชื่อมต่อกับ LangChain และ AI SDK
 
-### ติดตั้ง Dependencies ที่จำเป็น
+### 1. ติดตั้ง Dependencies ที่จำเป็น
 
 ```bash
 npm install langchain @ai-sdk/langchain @ai-sdk/react @langchain/core @langchain/openai ai
 ```
+### อธิบาย Dependencies ที่ติดตั้ง
+- `langchain`: ไลบรารีหลักสำหรับการสร้างแอปพลิเคชันที่ใช้ LLMs
+- `@ai-sdk/langchain`: ตัวเชื่อมต่อระหว่าง AI SDK กับ LangChain
+- `@ai-sdk/react`: React hooks สำหรับการจัดการแชทและสถานะ
+- `@langchain/core`: คอร์หลักของ LangChain สำหรับการจัดการ prompt และ chain
+- `@langchain/openai`: ตัวเชื่อมต่อกับ OpenAI API
+- `ai`: ไลบรารีสำหรับการจัดการข้อความและการสตรีม
 
-### การ Import และใช้งาน
-
-```typescript
-import { NextRequest } from "next/server";
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { createMessageStreamResponse, toAIMessage, convertToAIMessages } from "ai";
-```
-
-### การตั้งค่า Model และ Streaming
-
-```typescript
-const model = new ChatOpenAI({
-  model: "gpt-4o-mini",
-  temperature: 0.7,
-  maxTokens: 300,
-  streaming: true,
-});
-```
-
-### 3. Test API Route (/api/chat/route.ts)
+### 2. Test API Route (/api/chat/route.ts)
 
 สร้างไฟล์ `src/app/api/chat/route.ts` สำหรับทดสอบการรับและส่งข้อมูล:
 
@@ -308,7 +236,7 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-### POST /api/chat
+### 3. POST /api/chat
 
 Endpoint สำหรับส่งข้อความไปให้ AI และรับการตอบกลับแบบ streaming
 
@@ -329,8 +257,6 @@ Endpoint สำหรับส่งข้อความไปให้ AI แ�
   ]
 }
 ```
-
-**Response:** Stream ของ AI messages
 
 ### 4. Create UI in React (/src/app/page.tsx)
 
@@ -446,28 +372,13 @@ export default function Chat() {
 }
 ```
 
-## Base API Routes - สรุป
+### 5. Run Development Server
 
-ตัวอย่าง RESTful API endpoints ที่สร้างขึ้น:
-
-### `/api` - Base API Route
-- **GET** `/api` - ข้อความทดสอบ API พื้นฐาน
-- **POST** `/api` - ทดสอบ POST method
-- **PUT** `/api` - ทดสอบ PUT method  
-- **DELETE** `/api` - ทดสอบ DELETE method
-
-### `/api/test` - Test API Route พร้อมการรับส่งข้อมูล
-- **GET** `/api/test?name=John` - รับข้อมูลผ่าน Query Parameters
-- **POST** `/api/test` - รับข้อมูลผ่าน Request Body (JSON)
-- **PUT** `/api/test` - อัปเดตข้อมูลผ่าน Request Body (JSON)
-- **DELETE** `/api/test` - ลบข้อมูล
-
-**Response Format:**
-```json
-{
-  "message": "Hello, John!"
-}
+```bash
+npm run dev
 ```
+
+เปิดเบราว์เซอร์ไปที่ http://localhost:3000
 
 ---
 
@@ -477,18 +388,19 @@ export default function Chat() {
 aichatbot-langchain-nextjs/
 ├── src/
 │   └── app/
+│       ├── about/
+│       │   └── page.tsx         # About page
+│       ├── contact/
+│       │   └── page.tsx         # Contact page
 │       ├── api/
-│       │   ├── route.ts          # Base API routes
 │       │   ├── chat/
-│       │   │   └── route.ts      # Chat API endpoint
-│       │   └── test/
-│       │       └── route.ts      # Test API endpoint
+│       │   │   └── route.ts     # Chat API endpoint
 │       ├── favicon.ico
 │       ├── globals.css
 │       ├── layout.tsx
-│       └── page.tsx
+│       └── page.tsx             # Main chat page
 ├── public/
-├── .env.local                    # Environment variables
+├── .env.local                   # Environment variables
 ├── next.config.ts
 ├── package.json
 ├── tsconfig.json
@@ -500,7 +412,6 @@ aichatbot-langchain-nextjs/
 
 ✅ การติดตั้งและตรวจสอบเครื่องมือที่จำเป็น  
 ✅ การสร้างโปรเจ็กต์ Next.js 15 พร้อม App Router  
-✅ การเขียน REST API endpoints พื้นฐาน  
 ✅ การเชื่อมต่อกับ LangChain และ AI SDK  
 ✅ การตั้งค่า Environment Variables  
 ✅ การทำ Streaming Response สำหรับ AI Chat  
@@ -510,6 +421,5 @@ aichatbot-langchain-nextjs/
 ## หมายเหตุ
 
 - ใช้ Node.js เวอร์ชั่น 20 ขึ้นไป
-- Ollama เป็น optional สำหรับการรัน AI model แบบ local
 - ต้องมี OpenAI API Key สำหรับการใช้งาน
 - การ Streaming ช่วยให้ผู้ใช้เห็น response แบบ real-time
