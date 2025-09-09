@@ -241,7 +241,7 @@ const model = new ChatOpenAI({
 
 ### 3. Test API Route (/api/chat/route.ts)
 
-สร้างไฟล์ `src/app/api/test/route.ts` สำหรับทดสอบการรับและส่งข้อมูล:
+สร้างไฟล์ `src/app/api/chat/route.ts` สำหรับทดสอบการรับและส่งข้อมูล:
 
 ```typescript
 import { NextRequest } from "next/server"
