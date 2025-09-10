@@ -159,6 +159,7 @@ my-langchain-chatbot/
 │       ├── layout.tsx                # Root layout
 │       └── page.tsx                  # Main chat interface
 ├── public/                           # Static assets
+├── .env                              # Environment variables
 ├── eslint.config.mjs                 # ESLint configuration
 ├── next.config.ts                    # Next.js configuration
 ├── package.json                      # Dependencies และ scripts
