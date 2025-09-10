@@ -73,40 +73,31 @@ npm run dev
 aichatbot-langchain-nextjs/
 ├── src/
 │   └── app/
-│       ├── about/
-│       │   └── page.tsx         # หน้า About
-│       ├── contact/
-│       │   └── page.tsx         # หน้า Contact
 │       ├── api/
-│       │   ├── route.ts         # Base API endpoints (GET, POST, PUT, DELETE)
-│       │   ├── test/
-│       │   │   └── route.ts     # Test API สำหรับทดสอบการรับส่งข้อมูล
 │       │   ├── chat/
-│       │   │   └── route.ts     # Chat API endpoint หลักพร้อม LangChain
+│       │   │   └── route.ts          # Chat API endpoint
 │       │   ├── chat_01_start/
-│       │   │   └── route.ts     # Step 1: Basic chat setup
+│       │   │   └── route.ts          # Step 1: Basic chat setup
 │       │   ├── chat_02_request/
-│       │   │   └── route.ts     # Step 2: Request handling
-│       ├── favicon.ico
-│       ├── globals.css          # Global styles
-│       ├── layout.tsx           # Root layout
-│       └── page.tsx             # หน้าแชทหลัก
-├── public/                      # Static assets
-│   ├── file.svg
-│   ├── globe.svg
-│   ├── next.svg
-│   ├── vercel.svg
-│   └── window.svg
-├── .env.local                   # Environment variables (สร้างไฟล์นี้)
-├── Day1_Note.md                 # บันทึกการอบรม Day 1
-├── Day2_Note.md                 # บันทึกการอบรม Day 2
-├── eslint.config.mjs            # ESLint configuration
-├── next-env.d.ts                # Next.js TypeScript declarations
-├── next.config.ts               # การตั้งค่า Next.js
-├── package.json                 # Dependencies และ scripts
-├── postcss.config.mjs           # PostCSS configuration
-├── tsconfig.json               # การตั้งค่า TypeScript
-└── README.md                   # ไฟล์นี้
+│       │   │   └── route.ts          # Step 2: Request handling
+│       │   ├── chat_03_template/
+│       │   │   └── route.ts          # Step 3: Prompt templates
+│       │   ├── chat_04_stream/
+│       │   │   └── route.ts          # Step 4: Streaming responses
+│       │   ├── test/
+│       │   │   └── route.ts          # Test API endpoint
+│       │   └── route.ts              # Base API routes (GET, POST, PUT, DELETE)
+│       ├── globals.css               # Global styles
+│       ├── layout.tsx                # Root layout
+│       └── page.tsx                  # Main chat interface
+├── public/                           # Static assets
+├── eslint.config.mjs                 # ESLint configuration
+├── next.config.ts                    # Next.js configuration
+├── package.json                      # Dependencies และ scripts
+├── postcss.config.mjs                # PostCSS configuration
+├── tailwind.config.ts                # Tailwind CSS configuration
+├── tsconfig.json                     # TypeScript configuration
+└── README.md                         # Documentation
 ```
 
 ### 📝 คำอธิบายโครงสร้าง API
