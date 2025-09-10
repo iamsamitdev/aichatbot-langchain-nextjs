@@ -138,7 +138,7 @@ data: [DONE]
 ## 📁 โครงสร้างโปรเจ็กต์
 
 ```
-my-langchain-chatbot/
+aichatbot-langchain-nextjs/
 ├── src/
 │   └── app/
 │       ├── api/
