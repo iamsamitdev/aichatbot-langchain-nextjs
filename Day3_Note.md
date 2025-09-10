@@ -1,4 +1,32 @@
 # AI Chatbot with LangChain & Next.js - Day 3
+## 📚 สารบัญ
+- [การติดตั้งและตั้งค่า](#-การติดตั้งและตั้งค่า)
+- [โครงสร้างโปรเจ็กต์](#-โครงสร้างโปรเจ็กต์)
+- [LangChain Tutorial Endpoints (Continue)](#-langchain-tutorial-endpoints-continue)
+- [เสริมความรู้เรื่อง Edge Runtime](#-เสริมความรู้เรื่อง-edge-runtime)
+- [สรุป](#-สรุป)
+
+## 🛠️ การติดตั้งและตั้งค่า
+1. **Clone โปรเจ็กต์:**
+   ```bash
+  git clone <repository-url>
+  cd aichatbot-langchain-nextjs
+  ```
+2. **ติดตั้ง dependencies:**
+    ```bash
+    npm install
+    ```
+3. **ตั้งค่า environment variables:**
+   สร้างไฟล์ `.env` ในโฟลเดอร์หลัก:
+   ```env
+    OPENAI_API_KEY=your_openai_api_key_here
+    ```
+4. **รัน development server:**
+    ```bash
+    npm run dev
+    ```
+5. **เปิดเบราว์เซอร์:**
+   ไปที่ [http://localhost:3000](http://localhost:3000) เพื่อดูแอปพลิเคชัน
 
 ## 📁 โครงสร้างโปรเจ็กต์
 
@@ -326,3 +354,15 @@ Edge Runtime เป็นทางเลือกที่ยอดเยี่�
 - ใช้ Edge Runtime สำหรับ APIs ที่ต้องการความเร็ว
 - ใช้ Node.js Runtime สำหรับงานที่ต้องการ Node.js APIs
 - ทดสอบให้แน่ใจว่าไลบรารีที่ใช้รองรับ Edge Runtime
+
+## 🏁 สรุป
+ในวันนี้เราได้เรียนรู้เกี่ยวกับการสร้าง API endpoints สำหรับ AI chatbot โดยใช้ LangChain และ Next.js รวมถึงการใช้งาน Edge Runtime เพื่อเพิ่มประสิทธิภาพของแอปพลิเคชัน
+- เราได้สร้าง API endpoints ที่รองรับการสนทนาแบบ streaming
+- เราได้เรียนรู้ข้อดีและข้อจำกัดของ Edge Runtime
+- เราได้เห็นตัวอย่างการใช้งาน Edge Runtime ใน Next.js API routes
+- เราได้เข้าใจว่า Edge Runtime เหมาะสำหรับงานประเภทไหนบ้าง
+หวังว่าคุณจะสามารถนำความรู้ที่ได้ไปพัฒนา AI chatbot ของคุณ
+
+## 🤝 การมีส่วนร่วม
+หากคุณมีข้อเสนอแนะหรืออยากมีส่วนร่วมในการพัฒนาโปรเจ็กต์นี้ โปรดเปิด issue หรือส่ง pull request บน GitHub repository ของเรา!
+เรายินดีต้อนรับทุกคนที่สนใจในการพัฒนา AI chatbot ร่วมกับเรา!
