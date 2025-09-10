@@ -78,20 +78,44 @@ aichatbot-langchain-nextjs/
 │       ├── contact/
 │       │   └── page.tsx         # หน้า Contact
 │       ├── api/
-│       │   └── chat/
-│       │       └── route.ts     # Chat API endpoint พร้อม LangChain
+│       │   ├── route.ts         # Base API endpoints (GET, POST, PUT, DELETE)
+│       │   ├── test/
+│       │   │   └── route.ts     # Test API สำหรับทดสอบการรับส่งข้อมูล
+│       │   ├── chat/
+│       │   │   └── route.ts     # Chat API endpoint หลักพร้อม LangChain
+│       │   ├── chat_01_start/
+│       │   │   └── route.ts     # Step 1: Basic chat setup
+│       │   ├── chat_02_request/
+│       │   │   └── route.ts     # Step 2: Request handling
 │       ├── favicon.ico
 │       ├── globals.css          # Global styles
 │       ├── layout.tsx           # Root layout
 │       └── page.tsx             # หน้าแชทหลัก
 ├── public/                      # Static assets
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
 ├── .env.local                   # Environment variables (สร้างไฟล์นี้)
-├── Day1_Note.md                 # บันทึกการอบรมและเอกสาร
+├── Day1_Note.md                 # บันทึกการอบรม Day 1
+├── Day2_Note.md                 # บันทึกการอบรม Day 2
+├── eslint.config.mjs            # ESLint configuration
+├── next-env.d.ts                # Next.js TypeScript declarations
 ├── next.config.ts               # การตั้งค่า Next.js
 ├── package.json                 # Dependencies และ scripts
+├── postcss.config.mjs           # PostCSS configuration
 ├── tsconfig.json               # การตั้งค่า TypeScript
 └── README.md                   # ไฟล์นี้
 ```
+
+### 📝 คำอธิบายโครงสร้าง API
+
+- **`/api/route.ts`**: API endpoints พื้นฐาน (GET, POST, PUT, DELETE) สำหรับทดสอบ
+- **`/api/test/route.ts`**: API สำหรับทดสอบการรับและส่งข้อมูล พร้อม query parameters
+- **`/api/chat/route.ts`**: Chat API หลักที่ใช้ในการผลิต (production)
+- **`/api/chat_01_start/`**: ขั้นตอนที่ 1 - การตั้งค่า chat พื้นฐาน
+- **`/api/chat_02_request/`**: ขั้นตอนที่ 2 - การจัดการ HTTP requests
 
 ## 🎯 Dependencies สำคัญ
 
