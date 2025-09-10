@@ -400,7 +400,7 @@ aichatbot-langchain-nextjs/
 │       ├── layout.tsx
 │       └── page.tsx             # Main chat page
 ├── public/
-├── .env.local                   # Environment variables
+├── .env                         # Environment variables
 ├── next.config.ts
 ├── package.json
 ├── tsconfig.json
