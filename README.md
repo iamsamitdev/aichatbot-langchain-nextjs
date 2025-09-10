@@ -97,7 +97,7 @@ aichatbot-langchain-nextjs/
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
-├── .env.local                   # Environment variables (สร้างไฟล์นี้)
+├── .env                         # Environment variables (สร้างไฟล์นี้)
 ├── Day1_Note.md                 # บันทึกการอบรม Day 1
 ├── Day2_Note.md                 # บันทึกการอบรม Day 2
 ├── eslint.config.mjs            # ESLint configuration
