@@ -85,12 +85,12 @@ aichatbot-langchain-nextjs/
 │       ├── layout.tsx           # Root layout
 │       └── page.tsx             # หน้าแชทหลัก
 ├── public/                      # Static assets
-├── .env.local                   # Environment variables (สร้างไฟล์นี้)
+├── .env                         # Environment variables (สร้างไฟล์นี้)
 ├── Day1_Note.md                 # บันทึกการอบรมและเอกสาร
 ├── next.config.ts               # การตั้งค่า Next.js
 ├── package.json                 # Dependencies และ scripts
-├── tsconfig.json               # การตั้งค่า TypeScript
-└── README.md                   # ไฟล์นี้
+├── tsconfig.json                # การตั้งค่า TypeScript
+└── README.md                    # ไฟล์นี้
 ```
 
 ## 🎯 Dependencies สำคัญ
