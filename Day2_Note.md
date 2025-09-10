@@ -148,10 +148,6 @@ aichatbot-langchain-nextjs/
 │       │   │   └── route.ts          # Step 1: Basic chat setup
 │       │   ├── chat_02_request/
 │       │   │   └── route.ts          # Step 2: Request handling
-│       │   ├── chat_03_template/
-│       │   │   └── route.ts          # Step 3: Prompt templates
-│       │   ├── chat_04_stream/
-│       │   │   └── route.ts          # Step 4: Streaming responses
 │       │   ├── test/
 │       │   │   └── route.ts          # Test API endpoint
 │       │   └── route.ts              # Base API routes (GET, POST, PUT, DELETE)
@@ -159,6 +155,7 @@ aichatbot-langchain-nextjs/
 │       ├── layout.tsx                # Root layout
 │       └── page.tsx                  # Main chat interface
 ├── public/                           # Static assets
+├── .env                              # Environment variables
 ├── eslint.config.mjs                 # ESLint configuration
 ├── next.config.ts                    # Next.js configuration
 ├── package.json                      # Dependencies และ scripts
