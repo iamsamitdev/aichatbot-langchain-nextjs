@@ -367,3 +367,172 @@ Edge Runtime เป็นทางเลือกที่ยอดเยี่�
 ## 🤝 การมีส่วนร่วม
 หากคุณมีข้อเสนอแนะหรืออยากมีส่วนร่วมในการพัฒนาโปรเจ็กต์นี้ โปรดเปิด issue หรือส่ง pull request บน GitHub repository ของเรา!
 เรายินดีต้อนรับทุกคนที่สนใจในการพัฒนา AI chatbot ร่วมกับเรา!
+
+## 🧠 เสริมความรู้เรื่อง AIMessage จาก LangChain
+
+AIMessage เป็นโครงสร้างข้อมูลที่ LangChain ใช้ในการเก็บการตอบสนองจาก AI models ซึ่งมีข้อมูลครบถ้วนทั้งเนื้อหาคำตอบและ metadata ต่างๆ
+
+### 🔧 ตัวอย่างการใช้งาน AzureChatOpenAI
+
+```typescript
+import { AzureChatOpenAI } from "@langchain/openai"
+
+// สร้าง instance ของ AzureChatOpenAI
+const model = new AzureChatOpenAI({
+    model: "gpt-5-mini",
+    maxTokens: 1024,
+    maxRetries: 2,
+    azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+    azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
+    azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME,
+    azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
+})
+
+// กำหนดข้อความที่ต้องการแปล
+const input = `Translate "I love programming" into Thai.`
+
+// Model จะทำการแปลข้อความ
+const response = await model.invoke(input)
+
+// แสดงผลลัพธ์
+console.log(response) // ผลลัพธ์: ฉันรักการเขียนโปรแกรม
+```
+
+### 📊 โครงสร้าง AIMessage Response
+
+เมื่อเรียกใช้ model.invoke() จะได้ AIMessage object กลับมาดังนี้:
+
+```typescript
+AIMessage {
+  "id": "chatcmpl-CELK14G3uApbfFaG8pgtc2jtFTE4F",
+  "content": "\"ฉันรักการเขียนโปรแกรม\"\n\n(If a male speaker prefers: \"ผมรักการเขียนโปรแกรม\")  \nPronunciation (approx.): chan rak gaan kian pro-gram",
+  "additional_kwargs": {},
+  "response_metadata": {
+    "tokenUsage": {
+      "promptTokens": 15,
+      "completionTokens": 499,
+      "totalTokens": 514
+    },
+    "finish_reason": "stop",
+    "model_name": "gpt-5-mini-2025-08-07"
+  },
+  "tool_calls": [],
+  "invalid_tool_calls": [],
+  "usage_metadata": {
+    "output_tokens": 499,
+    "input_tokens": 15,
+    "total_tokens": 514,
+    "input_token_details": {
+      "audio": 0,
+      "cache_read": 0
+    },
+    "output_token_details": {
+      "audio": 0,
+      "reasoning": 448
+    }
+  }
+}
+```
+
+## 🔍 อธิบายแต่ละส่วนของ AIMessage
+
+### ส่วนหลัก (Top-Level Fields) 🎯
+
+#### `id: "chatcmpl-CELK14G3uApbfFaG8pgtc2jtFTE4F"`
+เป็น **ID เฉพาะ** ของการสนทนานี้ ใช้สำหรับอ้างอิงหรือติดตามปัญหาในระบบหลังบ้านของ Azure
+
+#### `content: "ฉันรักการเขียนโปรแกรม"...`
+นี่คือส่วนที่**สำคัญที่สุด** เป็น **คำตอบที่เป็นข้อความ** ที่ AI สร้างขึ้นเพื่อตอบคำถามของคุณโดยตรง
+
+#### `additional_kwargs: {}`
+เป็นที่สำหรับเก็บ**ข้อมูลเพิ่มเติม**ที่ไม่ได้อยู่ในมาตรฐานทั่วไป ในกรณีนี้คือว่างเปล่า
+
+#### `tool_calls` และ `invalid_tool_calls: []`
+หาก AI ตัดสินใจว่าต้องเรียกใช้ **"เครื่องมือ"** หรือ **"ฟังก์ชัน"** ที่เรากำหนดไว้ ข้อมูลการเรียกใช้นั้นจะมาอยู่ในส่วนนี้ แต่ในกรณีนี้ AI แค่ตอบเป็นข้อความธรรมดา ส่วนนี้จึงว่างเปล่า
+
+### response_metadata (ข้อมูลจาก API โดยตรง) 📊
+
+ส่วนนี้คือ**ข้อมูลดิบ**ที่ Azure OpenAI API ส่งกลับมาโดยตรง LangChain นำมาใส่ไว้ในส่วนนี้
+
+#### `tokenUsage:`
+- **`promptTokens: 15`** → คำถามของคุณ ("Translate 'I love programming' into Thai.") ถูกแปลงเป็น Token ได้ 15 ชิ้น
+- **`completionTokens: 499`** → คำตอบที่ AI สร้างขึ้น ใช้ไป 499 Tokens
+- **`totalTokens: 514`** → รวม Token ที่ใช้ไปทั้งหมดในการเรียก API ครั้งนี้ (15 + 499) ซึ่งเป็นตัวเลขที่ใช้ในการคิดค่าบริการ
+
+#### `finish_reason: "stop"`
+นี่คือ**สถานะการจบการทำงาน**ที่สมบูรณ์ หมายความว่า AI สร้างคำตอบเสร็จสิ้นแล้ว และหยุดทำงานเอง (ไม่เหมือนกับ "length" ที่แปลว่าถูกตัดจบเพราะชนเพดาน maxTokens)
+
+#### `model_name: "gpt-5-mini-2025-08-07"`
+**ชื่อและเวอร์ชัน**ของโมเดลที่ใช้ในการประมวลผลคำขอของคุณ
+
+### usage_metadata (ข้อมูลการใช้งานโดย LangChain) 📈
+
+ส่วนนี้เป็นการสรุปข้อมูลการใช้งานในรูปแบบของ LangChain ซึ่งมักจะคล้ายกับ tokenUsage แต่บางครั้งอาจมีรายละเอียดเพิ่มเติม
+
+#### `output_tokens, input_tokens, total_tokens:`
+เป็นการสรุป**จำนวน Token ที่ใช้** เหมือนกับ tokenUsage ด้านบน
+
+#### `input_token_details` และ `output_token_details:`
+เป็นการ**แยกแยะประเภท**ของ Token ที่ใช้ ในกรณีนี้ `output_token_details` บอกว่า `reasoning: 448` หมายถึงใน 499 โทเค็นที่สร้างขึ้นมา ส่วนใหญ่ถูกใช้ไปในกระบวนการ **"คิดวิเคราะห์"** (reasoning) เพื่อให้ได้คำตอบที่ถูกต้องออกมา
+
+## 💡 การใช้งาน AIMessage ในแอปพลิเคชัน
+
+### 1. **การดึงข้อความออกมาใช้**
+```typescript
+const response = await model.invoke(input)
+const textContent = response.content // ได้ข้อความตอบกลับ
+```
+
+### 2. **การตรวจสอบการใช้ Token**
+```typescript
+const response = await model.invoke(input)
+const totalTokens = response.response_metadata.tokenUsage.totalTokens
+console.log(`ใช้ Token ทั้งหมด: ${totalTokens}`)
+```
+
+### 3. **การตรวจสอบสถานะการจบงาน**
+```typescript
+const response = await model.invoke(input)
+if (response.response_metadata.finish_reason === "stop") {
+  console.log("AI ตอบครบถ้วนแล้ว")
+} else if (response.response_metadata.finish_reason === "length") {
+  console.log("AI ตอบไม่เสร็จเพราะถึงขีดจำกัด Token")
+}
+```
+
+### 4. **การตรวจสอบ Tool Calls**
+```typescript
+const response = await model.invoke(input)
+if (response.tool_calls.length > 0) {
+  console.log("AI ต้องการเรียกใช้ฟังก์ชัน:", response.tool_calls)
+}
+```
+
+## 🔧 Environment Variables สำหรับ Azure OpenAI
+
+```env
+# Azure OpenAI Configuration
+AZURE_OPENAI_API_KEY=your_azure_api_key
+AZURE_OPENAI_API_INSTANCE_NAME=your_instance_name
+AZURE_OPENAI_API_DEPLOYMENT_NAME=your_deployment_name
+AZURE_OPENAI_API_VERSION=2024-02-15-preview
+```
+
+## ⚡ ข้อแตกต่างระหว่าง OpenAI และ Azure OpenAI
+
+| ฟีเจอร์ | OpenAI | Azure OpenAI |
+|---------|---------|--------------|
+| **การรักษาความปลอดภัย** | มาตรฐาน | Enterprise-grade security |
+| **การควบคุมข้อมูล** | ข้อมูลอาจถูกใช้ในการฝึก | ข้อมูลไม่ถูกใช้ในการฝึก |
+| **SLA** | ไม่มี SLA รับประกัน | มี SLA 99.9% |
+| **การจัดการ** | API keys | Azure AD authentication |
+| **ราคา** | Pay-per-use | Managed pricing |
+
+## 🎯 Best Practices
+
+1. **ตรวจสอบ Token Usage เสมอ** เพื่อควบคุมค่าใช้จ่าย
+2. **Handle Error Cases** สำหรับ finish_reason ที่ไม่ใช่ "stop"
+3. **Log Request ID** สำหรับการ debug และ troubleshooting
+4. **ใช้ Environment Variables** สำหรับ sensitive data
+5. **Monitor Performance** ด้วย response metadata
+

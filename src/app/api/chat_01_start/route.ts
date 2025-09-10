@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { ChatOpenAI, AzureChatOpenAI } from "@langchain/openai"
+import { ChatOpenAI } from "@langchain/openai"
+// import { AzureChatOpenAI } from "@langchain/openai"
 
 // Example
 // const llm = new ChatOpenAI({
@@ -58,12 +59,10 @@ export async function POST() {
     //     apiKey: "ollama", // Ollama ไม่ต้องการ API key จริง แต่ต้องใส่ค่าอะไรก็ได้
     // })
 
-
-    // สร้าง instance ของ Ollama (Local) - ใช้ ChatOpenAI กับ baseURL ของ Ollama
+    // สร้าง instance ของ AzureChatOpenAI
     // const model = new AzureChatOpenAI({
     //     model: "gpt-5-mini",
-    //     temperature: 0.7,
-    //     maxTokens: 300,
+    //     maxTokens: 1024,
     //     maxRetries: 2,
     //     azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
     //     azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
@@ -81,41 +80,40 @@ export async function POST() {
     // console.log(response) // ผลลัพธ์: ฉันรักการเขียนโปรแกรม
 
     // try...catch เช็ค error 
-  try {
-    const response = await model.invoke([
-        {
-            role: "system",
-            content:
-            "คุณเป็นจัดการฝ่ายการเงินของบริษัท คุญตอบคำถามให้พนักงานในบริษัทในเรื่องการเงิน",
-        },
-        {
-            role: "human", // "human" เป็น alias ของ "user"
-            content: "สวัสดีครับ งบประมาณปีนี้เป็นอย่างไรบ้าง?",
-        },
-    ])
+    try {
+        const response = await model.invoke([
+            {
+                role: "system",
+                content:
+                "คุณเป็นจัดการฝ่ายการเงินของบริษัท คุญตอบคำถามให้พนักงานในบริษัทในเรื่องการเงิน",
+            },
+            {
+                role: "human", // "human" เป็น alias ของ "user"
+                content: "สวัสดีครับ งบประมาณปีนี้เป็นอย่างไรบ้าง?",
+            },
+        ])
 
-    // เอกสารฝั่ง LangChain JS ชี้ว่าข้อความมี “role” เช่น "user", "assistant" และ LangChain จะดูแลการแมปให้เข้ากับผู้ให้บริการเมื่อเรียกใช้โมเดล (จึงยอมรับทั้งสไตล์ LangChain "human" และสไตล์ผู้ให้บริการ "user") 
+        // เอกสารฝั่ง LangChain JS ชี้ว่าข้อความมี “role” เช่น "user", "assistant" และ LangChain จะดูแลการแมปให้เข้ากับผู้ให้บริการเมื่อเรียกใช้โมเดล (จึงยอมรับทั้งสไตล์ LangChain "human" และสไตล์ผู้ให้บริการ "user") 
 
-    // ข้อแนะนำการใช้งาน
+        // ข้อแนะนำการใช้งาน
 
-    // ถ้าจะให้ทีมอ่านง่ายและสอดคล้องกับเอกสารผู้ให้บริการหลายเจ้า แนะนำใช้ "user"/"assistant"/"system" เป็นหลัก ส่วน "human"/"ai" ถือเป็น alias ของ LangChain เท่านั้น (ผลเท่ากัน)
+        // ถ้าจะให้ทีมอ่านง่ายและสอดคล้องกับเอกสารผู้ให้บริการหลายเจ้า แนะนำใช้ "user"/"assistant"/"system" เป็นหลัก ส่วน "human"/"ai" ถือเป็น alias ของ LangChain เท่านั้น (ผลเท่ากัน)
 
-    // เมื่อส่ง “ประวัติแชต” ย้อนหลัง อย่าลืมใช้ assistant (หรือ ai) สำหรับข้อความตอบกลับก่อนหน้า และ system สำหรับคำสั่งตั้งต้น (system prompt) เพื่อให้โมเดลตีความบริบทถูกต้อง
+        // เมื่อส่ง “ประวัติแชต” ย้อนหลัง อย่าลืมใช้ assistant (หรือ ai) สำหรับข้อความตอบกลับก่อนหน้า และ system สำหรับคำสั่งตั้งต้น (system prompt) เพื่อให้โมเดลตีความบริบทถูกต้อง
 
-    // ดึงชื่อโมเดลจริงจาก metadata (บาง provider ใส่ model หรือ model_name)
-    const meta = response.response_metadata || {}
-    const usedModel = meta.model || meta.model_name || "unknown"
+        // ดึงชื่อโมเดลจริงจาก metadata (บาง provider ใส่ model หรือ model_name)
+        const meta = response.response_metadata || {}
+        const usedModel = meta.model || meta.model_name || "unknown"
 
-    // ส่งกลับทั้งคำตอบและชื่อโมเดล (จะได้เห็นชัดว่า “ตอบจากโมเดลอะไร”)
-    return NextResponse.json({
-        content: response.content,
-        usedModel,
-    })
+        // ส่งกลับทั้งคำตอบและชื่อโมเดล (จะได้เห็นชัดว่า “ตอบจากโมเดลอะไร”)
+        return NextResponse.json({
+            content: response.content,
+            usedModel,
+        })
 
-  } catch (error) {
+    } catch (error) {
         // Handle error
         console.error("Error:", error)
         return NextResponse.json({ error: "An error occurred" })
-  }
-
+    }
 }
