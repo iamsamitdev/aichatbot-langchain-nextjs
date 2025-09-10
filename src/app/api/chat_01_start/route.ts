@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { ChatOpenAI } from "@langchain/openai"
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
-import { AzureChatOpenAI } from "@langchain/openai"
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
+// import { AzureChatOpenAI } from "@langchain/openai"
 
 // Example
 // const llm = new ChatOpenAI({
