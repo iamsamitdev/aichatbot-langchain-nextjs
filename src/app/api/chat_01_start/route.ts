@@ -44,7 +44,7 @@ export async function POST() {
     //     model: process.env.GOOGLE_MODEL_NAME || "gemini-2.5-flash", // fallback ถ้าไม่มี env var
     //     temperature: 0.7, // ความสร้างสรรค์ของคำตอบ มีระดับ 0-1 // 0 คือ ตอบตรง ๆ // 1 คือ ตอบแบบสร้างสรรค์
     //     maxRetries: 2, // จำนวนครั้งสูงสุดในการลองใหม่
-    //     maxOutputTokens: 2048, // จำนวนคำตอบสูงสุดที่ต้องการ 300 token (สำหรับ Gemini)
+    //     maxOutputTokens: 2048, // จำนวนคำตอบสูงสุดที่ต้องการมากกว่า 300 token (สำหรับ Gemini)
     // })
 
     // MS Azure AI ===================================================================================
@@ -67,7 +67,7 @@ export async function POST() {
     //     cache: false, // ปิดใช้งาน cache
     //     temperature: 0.7, // ความสร้างสรรค์ของคำตอบ มีระดับ 0-1 // 0 คือ ตอบตรง ๆ // 1 คือ ตอบแบบสร้างสรรค์
     //     maxTokens: 1000, // จำนวนคำตอบสูงสุดที่ต้องการ 1000 token
-    //         configuration: {
+    //     configuration: {
     //         baseURL: process.env.OPENROUTER_API_BASE,
     //     },
     //     streamUsage: false, // ถ้าใช้ stream ต้องตั้งค่าเป็น true
@@ -119,7 +119,7 @@ export async function POST() {
     // แสดงผลลัพธ์
     // console.log(response) // ผลลัพธ์: ฉันรักการเขียนโปรแกรม
 
-    return NextResponse.json({ message: "Hello from Chat 01 - Start!" })
+    // return NextResponse.json({ message: "Hello from Chat 01 - Start!" })
 
     // try...catch เช็ค error 
     try {
@@ -138,9 +138,7 @@ export async function POST() {
         // เอกสารฝั่ง LangChain JS ชี้ว่าข้อความมี “role” เช่น "user", "assistant" และ LangChain จะดูแลการแมปให้เข้ากับผู้ให้บริการเมื่อเรียกใช้โมเดล (จึงยอมรับทั้งสไตล์ LangChain "human" และสไตล์ผู้ให้บริการ "user") 
 
         // ข้อแนะนำการใช้งาน
-
         // ถ้าจะให้ทีมอ่านง่ายและสอดคล้องกับเอกสารผู้ให้บริการหลายเจ้า แนะนำใช้ "user"/"assistant"/"system" เป็นหลัก ส่วน "human"/"ai" ถือเป็น alias ของ LangChain เท่านั้น (ผลเท่ากัน)
-
         // เมื่อส่ง “ประวัติแชต” ย้อนหลัง อย่าลืมใช้ assistant (หรือ ai) สำหรับข้อความตอบกลับก่อนหน้า และ system สำหรับคำสั่งตั้งต้น (system prompt) เพื่อให้โมเดลตีความบริบทถูกต้อง
 
         // ดึงชื่อโมเดลจริงจาก metadata (บาง provider ใส่ model หรือ model_name)
