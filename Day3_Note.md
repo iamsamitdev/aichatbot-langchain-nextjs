@@ -536,3 +536,210 @@ AZURE_OPENAI_API_VERSION=2024-02-15-preview
 4. **ใช้ Environment Variables** สำหรับ sensitive data
 5. **Monitor Performance** ด้วย response metadata
 
+---
+
+## 🔐 การตั้งค่า Supabase Authentication
+
+### 1. สร้าง Supabase Project
+
+#### ขั้นตอนการสร้างโปรเจ็กต์ใหม่:
+1. **เข้าไปที่** [https://supabase.com](https://supabase.com)
+2. **สร้างโปรเจ็กต์ใหม่** โดยกรอกข้อมูล:
+   - **Organization**: เลือก organization ของคุณ
+   - **Project name**: `ai-chatbot-langchain-nextjs`
+   - **Database password**: สร้างรหัสผ่านที่แข็งแรง (ระบบจะสร้างให้อัตโนมัติ)
+   - **Region**: เลือก `Southeast Asia (Singapore)` เพื่อความเร็วที่ดีที่สุด
+3. **กดปุ่ม** "Create new project"
+4. **รอให้โปรเจ็กต์สร้างเสร็จ** (ประมาณ 2-3 นาที)
+
+#### การตั้งค่า Environment Variables:
+หลังจากสร้างโปรเจ็กต์เสร็จ ให้คัดลอกข้อมูลต่อไปนี้มาใส่ในไฟล์ `.env.local`:
+
+```env
+# === Supabase config =====
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url-here
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-supabase-publishable-or-anon-key-here
+```
+
+### 2. การตั้งค่า Shadcn/UI
+
+#### ติดตั้ง Shadcn/UI สำหรับ Next.js:
+```bash
+# ติดตั้ง Shadcn/UI ในโปรเจ็กต์
+npx shadcn@latest init
+```
+
+#### การตั้งค่าเริ่มต้น:
+- **TypeScript**: Yes
+- **Style**: Default
+- **Color**: Slate
+- **CSS file**: src/app/globals.css
+- **Tailwind config**: tailwind.config.ts
+- **Components**: src/components
+- **Utils**: src/lib/utils
+
+### 3. การติดตั้ง Supabase UI Library
+
+#### ติดตั้งแพ็คเกจ Authentication จาก Supabase UI:
+```bash
+# ติดตั้ง Password-based Authentication components
+npx shadcn@latest add https://supabase.com/ui/r/password-based-auth-nextjs.json
+```
+
+#### แพ็คเกจที่ติดตั้งเพิ่มเติม:
+```json
+{
+  "@supabase/ssr": "^0.7.0",
+  "@supabase/supabase-js": "^2.56.0",
+  "@radix-ui/react-label": "^2.1.7",
+  "@radix-ui/react-slot": "^1.2.3",
+  "class-variance-authority": "^0.7.1",
+  "clsx": "^2.1.1",
+  "lucide-react": "^0.541.0",
+  "tailwind-merge": "^3.3.1"
+}
+```
+
+### 4. โครงสร้างโปรเจ็กต์หลังจากติดตั้งเสร็จ
+
+```
+aichatbot-langchain-nextjs/
+├── src/
+│   ├── app/
+│   │   ├── auth/
+│   │   │   ├── confirm/
+│   │   │   │   └── route.ts          # Email confirmation endpoint
+│   │   │   ├── error/
+│   │   │   │   └── page.tsx          # Authentication error page
+│   │   │   ├── forgot-password/
+│   │   │   │   └── page.tsx          # Forgot password page
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx          # Login page
+│   │   │   ├── sign-up/
+│   │   │   │   └── page.tsx          # Registration page
+│   │   │   ├── sign-up-success/
+│   │   │   │   └── page.tsx          # Registration success page
+│   │   │   └── update-password/
+│   │   │       └── page.tsx          # Update password page
+│   │   ├── api/
+│   │   │   ├── chat/
+│   │   │   │   └── route.ts          # Chat API endpoint
+│   │   │   ├── chat_01_start/
+│   │   │   │   └── route.ts          # Step 1: Basic chat setup
+│   │   │   ├── chat_02_request/
+│   │   │   │   └── route.ts          # Step 2: Request handling
+│   │   │   ├── chat_03_template/
+│   │   │   │   └── route.ts          # Step 3: Prompt templates
+│   │   │   ├── chat_04_stream/
+│   │   │   │   └── route.ts          # Step 4: Streaming responses
+│   │   │   ├── test/
+│   │   │   │   └── route.ts          # Test API endpoint
+│   │   │   └── route.ts              # Base API routes
+│   │   ├── chat/
+│   │   │   ├── layout.tsx            # Chat layout (protected)
+│   │   │   └── page.tsx              # Chat interface (authenticated)
+│   │   ├── globals.css               # Global styles with Tailwind
+│   │   ├── layout.tsx                # Root layout
+│   │   └── page.tsx                  # Landing/home page
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── button.tsx            # Button component
+│   │   │   ├── card.tsx              # Card component
+│   │   │   ├── input.tsx             # Input component
+│   │   │   └── label.tsx             # Label component
+│   │   ├── forgot-password-form.tsx  # Forgot password form
+│   │   ├── login-form.tsx            # Login form component
+│   │   ├── logout-button.tsx         # Logout button component
+│   │   ├── sign-up-form.tsx          # Registration form component
+│   │   └── update-password-form.tsx  # Update password form
+│   ├── lib/
+│   │   ├── clients.ts                # Supabase client configurations
+│   │   ├── middlewares.ts            # Authentication middlewares
+│   │   ├── server.ts                 # Server-side Supabase utilities
+│   │   └── utils.ts                  # Utility functions
+│   └── middlewares.ts                # Next.js middleware for auth
+├── public/                           # Static assets
+├── .env.local                        # Environment variables (สร้างไฟล์นี้)
+├── .env.example                      # Template สำหรับ environment variables
+├── components.json                   # Shadcn/UI configuration
+├── Day1_Note.md                      # บันทึกการอบรม Day 1
+├── Day2_Note.md                      # บันทึกการอบรม Day 2
+├── Day3_Note.md                      # บันทึกการอบรม Day 3 (ไฟล์นี้)
+├── eslint.config.mjs                 # ESLint configuration
+├── next.config.ts                    # Next.js configuration
+├── package.json                      # Dependencies และ scripts
+├── postcss.config.mjs                # PostCSS configuration
+├── tailwind.config.ts                # Tailwind CSS configuration
+├── tsconfig.json                     # TypeScript configuration
+└── README.md                         # Documentation
+```
+
+### 5. ไฟล์ Environment Variables ที่สมบูรณ์
+
+สร้างไฟล์ `.env.local` จากตัวอย่างใน `.env.example`:
+
+```env
+# === Supabase config =====
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-anon-key
+
+# === OPENAI (ChatGPT) =====
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL_NAME="gpt-4o-mini"
+
+# === GOOGLE (Gemini) =====
+GOOGLE_API_KEY=your-google-api-key
+GOOGLE_MODEL_NAME="gemini-2.5-flash"
+
+# === MS AZURE =====
+AZURE_OPENAI_API_KEY=your-azure-openai-api-key
+AZURE_OPENAI_API_INSTANCE_NAME=your-azure-openai-instance-name
+AZURE_OPENAI_API_DEPLOYMENT_NAME=gpt-5-mini-2
+AZURE_OPENAI_API_VERSION=2024-04-01-preview
+AZURE_OPENAI_API_MODEL_NAME="gpt-5-mini"
+```
+
+### 6. คุณสมบัติที่ได้จากการติดตั้ง
+
+#### 🔐 **Authentication Features:**
+- **User Registration** - การสมัครสมาชิกด้วย email/password
+- **User Login** - การเข้าสู่ระบบ
+- **Password Reset** - การรีเซ็ตรหัสผ่าน
+- **Email Confirmation** - การยืนยันอีเมล
+- **Protected Routes** - การป้องกันหน้าที่ต้องเข้าสู่ระบบ
+- **Session Management** - การจัดการ session อัตโนมัติ
+
+#### 🎨 **UI Components:**
+- **Modern Design** - UI components ที่สวยงามและทันสมัย
+- **Responsive** - ใช้งานได้ทั้งเดสก์ท็อปและมือถือ
+- **Accessible** - รองรับ screen readers และ keyboard navigation
+- **Customizable** - สามารถปรับแต่งสีและรูปแบบได้ง่าย
+
+#### ⚡ **Performance Benefits:**
+- **Server-Side Rendering** - ความเร็วในการโหลดหน้าเว็บ
+- **Edge Runtime** - ประสิทธิภาพสูงสำหรับ API
+- **Automatic Code Splitting** - โหลดเฉพาะโค้ดที่จำเป็น
+- **TypeScript Support** - การพัฒนาที่ปลอดภัยและรวดเร็ว
+
+### 7. ขั้นตอนต่อไป
+
+1. **ตั้งค่า Supabase Database** - สร้างตารางสำหรับ chat history
+2. **เชื่อมต่อ Authentication** - ผูกระบบ auth เข้ากับ chat interface
+3. **สร้าง User Profile** - เก็บข้อมูลผู้ใช้เพิ่มเติม
+4. **Chat History** - บันทึกประวัติการสนทนา
+5. **Real-time Features** - การแชทแบบ real-time
+
+---
+
+## 🎉 สรุป Day 3
+
+ในวันนี้เราได้เรียนรู้และติดตั้ง:
+
+✅ **Supabase Project** - ฐานข้อมูลและ authentication ในระบบคลาวด์  
+✅ **Shadcn/UI** - UI component library ที่ทันสมัย  
+✅ **Supabase UI Library** - Authentication components ที่พร้อมใช้งาน  
+✅ **Environment Configuration** - การตั้งค่าตัวแปรสิ่งแวดล้อม  
+✅ **Project Structure** - โครงสร้างโปรเจ็กต์ที่เป็นระเบียบ  
+
+ตอนนี้โปรเจ็กต์พร้อมสำหรับการพัฒนา AI Chatbot ที่มีระบบ authentication แล้ว! 🚀
+
