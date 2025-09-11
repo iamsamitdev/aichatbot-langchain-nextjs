@@ -11,6 +11,8 @@
   "dependencies": {
     "@ai-sdk/langchain": "^1.0.39",
     "@ai-sdk/react": "^2.0.39",
+    "@gradientai/nodejs-sdk": "^1.12.1",
+    "@langchain/community": "^0.3.55",
     "@langchain/core": "^0.3.75",
     "@langchain/google-genai": "^0.2.17",
     "@langchain/openai": "^0.6.11",

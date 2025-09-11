@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { ChatOpenAI } from "@langchain/openai"
 // import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 // import { AzureChatOpenAI } from "@langchain/openai"
+// import { Gradient } from "@gradientai/nodejs-sdk"
+// import { GradientLLM } from "@langchain/community/llms/gradient_ai"
 
 // Example
 // const llm = new ChatOpenAI({
@@ -95,6 +97,19 @@ export async function POST() {
     //     apiKey: "vllm", // vLLM ไม่ต้องการ API key จริง แต่ต้องใส่ค่าอะไรก็ได้
     // })
 
+    // Gradient AI (DigitalOcean) =====================================================================
+    // สร้าง instance ของ GradientLLM
+    // const model = new GradientLLM({
+    //     gradientAccessKey: process.env.GRADIENT_ACCESS_TOKEN || "", // ใส่ Access Token ของคุณ
+    //     workspaceId: process.env.GRADIENT_WORKSPACE_ID || "agent-gpt-oss", // ชื่อ Workspace ID ของคุณ
+    //     modelSlug: process.env.GRADIENT_MODEL_NAME || "openai-gpt-oss-120b", // ชื่อโมเดลที่ต้องการใช้
+    //     inferenceParameters: {
+    //         maxGeneratedTokenCount: 2048,
+    //         temperature: 0.7,
+    //     },
+    //     gradientApiUrl: "https://apis.gradient.network/api/v1", // เปลี่ยนเป็น URL ของ DigitalOcean
+    // })
+
     // กำหนดข้อความที่ต้องการแปล
     // const input = `Translate "I love programming" into Thai.`
 
@@ -103,6 +118,8 @@ export async function POST() {
 
     // แสดงผลลัพธ์
     // console.log(response) // ผลลัพธ์: ฉันรักการเขียนโปรแกรม
+
+    return NextResponse.json({ message: "Hello from Chat 01 - Start!" })
 
     // try...catch เช็ค error 
     try {
@@ -141,4 +158,5 @@ export async function POST() {
         console.error("Error:", error)
         return NextResponse.json({ error: "An error occurred" })
     }
+    
 }
