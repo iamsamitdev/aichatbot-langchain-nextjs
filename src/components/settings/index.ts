@@ -1,0 +1,8 @@
+export { GeneralTab } from './general-tab'
+export { NotificationsTab } from './notifications-tab'
+export { PersonalizationTab } from './personalization-tab'
+export { ConnectorsTab } from './connectors-tab'
+export { SchedulesTab } from './schedules-tab'
+export { DataControlsTab } from './data-controls-tab'
+export { SecurityTab } from './security-tab'
+export { AccountTab } from './account-tab'
