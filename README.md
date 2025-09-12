@@ -157,7 +157,15 @@ aichatbot-langchain-nextjs/
 │   │   │   ├── textarea.tsx          # Textarea component (Shadcn/UI)
 │   │   │   └── tooltip.tsx           # Tooltip component (Shadcn/UI)
 │   │   ├── settings/
-│   │   │   └── [components]          # Settings-related components
+│   │   │   ├── account-tab.tsx       # Account settings tab
+│   │   │   ├── connectors-tab.tsx    # API connectors settings
+│   │   │   ├── data-controls-tab.tsx # Data control settings
+│   │   │   ├── general-tab.tsx       # General settings tab
+│   │   │   ├── index.ts              # Settings components exports
+│   │   │   ├── notifications-tab.tsx # Notifications settings
+│   │   │   ├── personalization-tab.tsx # UI personalization settings
+│   │   │   ├── schedules-tab.tsx     # Schedules settings
+│   │   │   └── security-tab.tsx      # Security settings tab
 │   │   ├── chat-sidebar.tsx          # Chat sidebar with conversation history
 │   │   ├── forgot-password-form.tsx  # Forgot password form (Supabase UI)
 │   │   ├── login-form.tsx            # Login form component (Supabase UI)
@@ -166,6 +174,10 @@ aichatbot-langchain-nextjs/
 │   │   ├── new-chat.tsx              # Advanced new chat component
 │   │   ├── sign-up-form.tsx          # Registration form (Supabase UI)
 │   │   └── update-password-form.tsx  # Update password form (Supabase UI)
+│   ├── contexts/
+│   │   └── chat-context.tsx          # Chat context provider for state management
+│   ├── hooks/
+│   │   └── use-mobile.ts             # Custom hook for mobile detection
 │   ├── lib/
 │   │   ├── clients.ts                # Supabase client configurations
 │   │   ├── middlewares.ts            # Authentication middlewares
@@ -224,7 +236,27 @@ aichatbot-langchain-nextjs/
   - **Authentication Forms**: Login, Sign-up, Forgot-password, Update-password
   - **Chat Features**: Chat-sidebar, New-chat (simple & advanced)
   - **User Actions**: Logout-button
-  - **Settings**: Settings components directory
+- **`/components/settings/`**: 
+  - **Account Management**: Account-tab สำหรับจัดการบัญชีผู้ใช้
+  - **API Configuration**: Connectors-tab สำหรับตั้งค่า API providers
+  - **Data Controls**: Data-controls-tab สำหรับจัดการข้อมูล
+  - **General Settings**: General-tab สำหรับการตั้งค่าทั่วไป
+  - **Notifications**: Notifications-tab สำหรับการแจ้งเตือน
+  - **Personalization**: Personalization-tab สำหรับปรับแต่ง UI
+  - **Schedules**: Schedules-tab สำหรับจัดการตารางเวลา
+  - **Security**: Security-tab สำหรับการตั้งค่าความปลอดภัย
+
+#### 🧩 **Context & State Management**
+- **`/contexts/chat-context.tsx`**: React Context สำหรับจัดการ state ของการแชท
+  - Chat messages history
+  - Current conversation state
+  - Chat settings และ preferences
+
+#### 🎣 **Custom Hooks**
+- **`/hooks/use-mobile.ts`**: Custom hook สำหรับตรวจจับอุปกรณ์มือถือ
+  - Responsive design utilities
+  - Mobile-specific UI behaviors
+
 - **`/lib/`**: 
   - **Supabase**: Client configurations, server utilities
   - **Authentication**: Middleware functions
@@ -372,15 +404,37 @@ Endpoint หลักสำหรับจัดการการสนทน�
 - **Responsive Design**: ใช้งานได้ทั้งเดสก์ท็อปและมือถือ
 
 ### ⚙️ **Settings & Configuration**
-- **Settings Directory**: Components สำหรับการตั้งค่าต่างๆ
+- **Settings Tabs System**: แบ่งการตั้งค่าเป็น tabs สำหรับการจัดการที่ง่าย
+  - **Account Tab**: จัดการข้อมูลบัญชีผู้ใช้
+  - **Connectors Tab**: ตั้งค่า AI providers และ API connections
+  - **Data Controls Tab**: จัดการข้อมูลและความเป็นส่วนตัว
+  - **General Tab**: การตั้งค่าทั่วไปของแอปพลิเคชัน
+  - **Notifications Tab**: การตั้งค่าการแจ้งเตือน
+  - **Personalization Tab**: ปรับแต่งธีมและ UI preferences
+  - **Schedules Tab**: การจัดการตารางเวลาและ automation
+  - **Security Tab**: การตั้งค่าความปลอดภัยและ authentication
 - **User Preferences**: การจัดการ preferences ของผู้ใช้
 - **Theme Management**: การเปลี่ยน theme และ appearance
+
+### 🧩 **State Management & Hooks**
+- **Chat Context**: Global state management สำหรับการแชท
+  - Message history และ conversation state
+  - Chat settings และ user preferences
+  - Real-time updates และ synchronization
+- **Custom Hooks**: 
+  - **useMobile**: Hook สำหรับตรวจจับและจัดการ responsive design
+  - **Auto-responsive**: การปรับ UI ตามขนาดหน้าจอโดยอัตโนมัติ
+- **Context Providers**: Centralized state management pattern
 
 ### 🔧 **Developer Features**
 - **Modular API Design**: API endpoints แยกตาม functionality
 - **Tutorial Endpoints**: Step-by-step learning endpoints
 - **Error Handling**: Comprehensive error handling และ user feedback
 - **Type Safety**: TypeScript ทั่วทั้งโปรเจ็กต์
+- **Context Pattern**: React Context API สำหรับ global state management
+- **Custom Hooks**: Reusable hooks สำหรับ common functionalities
+- **Responsive Design**: Built-in mobile detection และ adaptive UI
+- **Component Architecture**: Modular และ reusable component design
 
 ## 🔐 Environment Variables
 
