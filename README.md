@@ -7,11 +7,15 @@
 - **หน้าต่างแชทแบบ Real-time**: สร้างด้วย AI SDK React hooks เพื่อประสบการณ์ผู้ใช้ที่ลื่นไหล
 - **การตอบสนองแบบ Streaming**: AI ตอบกลับแบบ real-time เพื่อ UX ที่ดีขึ้น
 - **การรวม LangChain**: ใช้ LangChain สำหรับการจัดการการสนทนา AI ขั้นสูง
-- **OpenAI GPT-4**: ขับเคลื่อนด้วยโมเดล GPT-4o-mini ของ OpenAI
-- **Supabase Authentication**: ระบบ login/register ที่สมบูรณ์แบบ
+- **Multi-Provider Support**: รองรับ OpenAI, Google AI, Azure, OpenRouter, Ollama, vLLM และ Gradient AI
+- **Supabase Authentication**: ระบบ login/register/password reset ที่สมบูรณ์แบบ
+- **Chat Sidebar**: ประวัติการสนทนาและการจัดการ chat sessions
 - **UI ที่ทันสมัย**: อินเทอร์เฟซแชทที่สวยงามด้วย Shadcn/UI และ Tailwind CSS
 - **Next.js 15 App Router**: ใช้ฟีเจอร์ล่าสุดของ Next.js และ file-based routing
-- **Protected Routes**: การป้องกันหน้าที่ต้องเข้าสู่ระบบ
+- **Protected Routes**: การป้องกันหน้าที่ต้องเข้าสู่ระบบด้วย middleware
+- **Modular API Design**: API endpoints แบ่งตาม functionality และมี tutorial endpoints
+- **Settings System**: ระบบการตั้งค่าต่างๆ สำหรับผู้ใช้
+- **Responsive Design**: ใช้งานได้ทั้งเดสก์ท็อปและมือถือ
 
 ## 🛠️ เทคโนโลยีที่ใช้
 
@@ -63,7 +67,7 @@ npm install
    - คัดลอก Project URL และ API Key
 
 4. **ตั้งค่า environment variables**
-สร้างไฟล์ `.env.local` ในโฟลเดอร์หลัก (ดูตัวอย่างใน `.env.example`):
+สร้างไฟล์ `.env` ในโฟลเดอร์หลัก (ดูตัวอย่างใน `.env.example`):
 ```env
 # === Supabase config =====
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url-here
@@ -134,13 +138,32 @@ aichatbot-langchain-nextjs/
 │   │   └── page.tsx                  # Landing/home page
 │   ├── components/
 │   │   ├── ui/
+│   │   │   ├── avatar.tsx            # Avatar component (Shadcn/UI)
 │   │   │   ├── button.tsx            # Button component (Shadcn/UI)
 │   │   │   ├── card.tsx              # Card component (Shadcn/UI)
+│   │   │   ├── chat-container.tsx    # Chat container component
+│   │   │   ├── code-block.tsx        # Code syntax highlighting component
 │   │   │   ├── input.tsx             # Input component (Shadcn/UI)
-│   │   │   └── label.tsx             # Label component (Shadcn/UI)
+│   │   │   ├── label.tsx             # Label component (Shadcn/UI)
+│   │   │   ├── markdown.tsx          # Markdown rendering component
+│   │   │   ├── message.tsx           # Chat message component
+│   │   │   ├── popover.tsx           # Popover component (Shadcn/UI)
+│   │   │   ├── prompt-input.tsx      # Enhanced prompt input component
+│   │   │   ├── scroll-button.tsx     # Scroll to bottom button
+│   │   │   ├── separator.tsx         # Separator component (Shadcn/UI)
+│   │   │   ├── sheet.tsx             # Sheet component (Shadcn/UI)
+│   │   │   ├── sidebar.tsx           # Sidebar component
+│   │   │   ├── skeleton.tsx          # Loading skeleton component
+│   │   │   ├── textarea.tsx          # Textarea component (Shadcn/UI)
+│   │   │   └── tooltip.tsx           # Tooltip component (Shadcn/UI)
+│   │   ├── settings/
+│   │   │   └── [components]          # Settings-related components
+│   │   ├── chat-sidebar.tsx          # Chat sidebar with conversation history
 │   │   ├── forgot-password-form.tsx  # Forgot password form (Supabase UI)
 │   │   ├── login-form.tsx            # Login form component (Supabase UI)
 │   │   ├── logout-button.tsx         # Logout button component (Supabase UI)
+│   │   ├── new-chat-simple.tsx       # Simple new chat button
+│   │   ├── new-chat.tsx              # Advanced new chat component
 │   │   ├── sign-up-form.tsx          # Registration form (Supabase UI)
 │   │   └── update-password-form.tsx  # Update password form (Supabase UI)
 │   ├── lib/
@@ -155,29 +178,31 @@ aichatbot-langchain-nextjs/
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
-├── .env.local                        # Environment variables (สร้างไฟล์นี้)
+├── .env                              # Environment variables (สร้างไฟล์นี้)
 ├── .env.example                      # Template สำหรับ environment variables
 ├── components.json                   # Shadcn/UI configuration
 ├── Day1_Note.md                      # บันทึกการอบรม Day 1
 ├── Day2_Note.md                      # บันทึกการอบรม Day 2
 ├── Day3_Note.md                      # บันทึกการอบรม Day 3
+├── Day4_Note.md                      # บันทึกการอบรม Day 4
 ├── eslint.config.mjs                 # ESLint configuration
 ├── next.config.ts                    # Next.js configuration
 ├── package.json                      # Dependencies และ scripts
 ├── postcss.config.mjs                # PostCSS configuration
-├── tailwind.config.ts                # Tailwind CSS configuration
 ├── tsconfig.json                     # TypeScript configuration
 └── README.md                         # Documentation (ไฟล์นี้)
 ```
 
 ### 📝 คำอธิบายโครงสร้าง
 
-#### 🔐 **Authentication Routes**
-- **`/auth/login`**: หน้าเข้าสู่ระบบ
-- **`/auth/sign-up`**: หน้าสมัครสมาชิค
+#### 🔐 **Authentication System (ระบบยืนยันตัวตน)**
+- **`/auth/login`**: หน้าเข้าสู่ระบบด้วย Supabase Auth
+- **`/auth/sign-up`**: หน้าสมัครสมาชิคพร้อม email confirmation
 - **`/auth/forgot-password`**: หน้ารีเซ็ตรหัสผ่าน
+- **`/auth/update-password`**: หน้าอัปเดตรหัสผ่านใหม่
 - **`/auth/confirm`**: Endpoint สำหรับยืนยันอีเมล
-- **`/chat`**: หน้าแชทหลัก (ต้องเข้าสู่ระบบ)
+- **`/auth/error`**: หน้าแสดงข้อผิดพลาดในการยืนยันตัวตน
+- **`/chat`**: หน้าแชทหลัก (Protected Route - ต้องเข้าสู่ระบบ)
 
 #### 🤖 **API Endpoints**
 - **`/api/route.ts`**: API endpoints พื้นฐาน (GET, POST, PUT, DELETE)
@@ -189,26 +214,73 @@ aichatbot-langchain-nextjs/
 - **`/api/chat_04_stream/`**: ขั้นตอนที่ 4 - การตอบสนองแบบ streaming
 
 #### 🎨 **UI Components**
-- **`/components/ui/`**: Shadcn/UI components (Button, Card, Input, Label)
-- **`/components/*-form.tsx`**: Supabase UI authentication forms
-- **`/lib/`**: Utility functions, Supabase clients และ middlewares
+- **`/components/ui/`**: 
+  - **Shadcn/UI Components**: Button, Card, Input, Label, Avatar, Tooltip
+  - **Chat Components**: Message, Chat-container, Markdown, Code-block
+  - **Layout Components**: Sidebar, Sheet, Popover, Separator
+  - **Form Components**: Textarea, Prompt-input
+  - **Utility Components**: Skeleton (loading), Scroll-button
+- **`/components/`**: 
+  - **Authentication Forms**: Login, Sign-up, Forgot-password, Update-password
+  - **Chat Features**: Chat-sidebar, New-chat (simple & advanced)
+  - **User Actions**: Logout-button
+  - **Settings**: Settings components directory
+- **`/lib/`**: 
+  - **Supabase**: Client configurations, server utilities
+  - **Authentication**: Middleware functions
+  - **Utilities**: Tailwind merge, helper functions
+
+#### 🛡️ **Middleware & Protection**
+- **`/middlewares.ts`**: Next.js middleware สำหรับป้องกัน protected routes
+- **`/lib/middlewares.ts`**: Authentication helper functions
+- **Route Protection**: Chat routes ต้องผ่านการยืนยันตัวตนก่อน
 
 ## 🎯 Dependencies สำคัญ
 
 ```json
 {
   "langchain": "เฟรมเวิร์กสำหรับแอป AI ขั้นสูง",
+  "@langchain/core": "ฟังก์ชันหลักและ abstractions ของ LangChain",
+  "@langchain/openai": "การรวม OpenAI API สำหรับ LangChain",
+  "@langchain/google-genai": "การรวม Google Generative AI",
+  "@langchain/community": "Community integrations (Gradient AI)",
   "@ai-sdk/langchain": "ตัวเชื่อมต่อ LangChain สำหรับ AI SDK",
-  "@ai-sdk/react": "React hooks สำหรับแอป AI",
-  "@langchain/core": "ฟังก์ชันหลักของ LangChain",
-  "@langchain/openai": "การรวม OpenAI สำหรับ LangChain",
+  "@ai-sdk/react": "React hooks สำหรับแอป AI (useChat, useAssistant)",
+  "@ai-sdk/openai": "OpenAI provider สำหรับ AI SDK",
   "ai": "AI SDK สำหรับ streaming และการจัดการข้อความ",
+  "next": "React framework สำหรับ production",
+  "react": "Library สำหรับสร้าง user interfaces",
+  "typescript": "Type-safe JavaScript"
+}
+```
+
+### 🔐 Authentication & Database
+```json
+{
   "@supabase/supabase-js": "Supabase JavaScript client",
-  "@supabase/ssr": "Supabase Server-Side Rendering helpers",
+  "@supabase/ssr": "Supabase Server-Side Rendering helpers"
+}
+```
+
+### 🎨 UI & Styling
+```json
+{
   "@radix-ui/react-*": "Radix UI components สำหรับ accessibility",
+  "shadcn/ui": "Re-usable components ที่สร้างด้วย Radix UI + Tailwind",
+  "tailwindcss": "Utility-first CSS framework",
   "class-variance-authority": "สำหรับจัดการ CSS classes แบบ type-safe",
   "tailwind-merge": "สำหรับรวม Tailwind CSS classes อย่างฉลาด",
-  "lucide-react": "Icon library ที่ทันสมัย"
+  "clsx": "Utility สำหรับสร้าง className strings แบบมีเงื่อนไข",
+  "lucide-react": "Icon library ที่ทันสมัยและสวยงาม"
+}
+```
+
+### 🛠️ Development Tools
+```json
+{
+  "eslint": "Linting tool สำหรับ JavaScript/TypeScript",
+  "postcss": "Tool สำหรับแปลง CSS",
+  "@types/*": "TypeScript type definitions"
 }
 ```
 
@@ -264,53 +336,117 @@ Endpoint หลักสำหรับจัดการการสนทน�
 }
 ```
 
-## 🎨 UI Components
+## 🎨 UI Components & Features
 
 อินเทอร์เฟซแชทประกอบด้วย:
 
-### 🔐 **Authentication UI**
-- **Login Form**: ฟอร์มเข้าสู่ระบบพร้อม validation
+### 🔐 **Authentication System**
+- **Login Form**: ฟอร์มเข้าสู่ระบบพร้อม validation และ error handling
 - **Registration Form**: ฟอร์มสมัครสมาชิกพร้อมยืนยันอีเมล
-- **Password Reset**: ฟอร์มรีเซ็ตรหัสผ่าน
-- **Protected Routes**: การป้องกันหน้าที่ต้องเข้าสู่ระบบ
+- **Password Reset**: ฟอร์มรีเซ็ตและอัปเดตรหัสผ่าน
+- **Email Confirmation**: ระบบยืนยันอีเมลผ่าน Supabase Auth
+- **Protected Routes**: การป้องกันหน้าที่ต้องเข้าสู่ระบบด้วย middleware
+- **Session Management**: การจัดการ session และ automatic logout
 
 ### 💬 **Chat Interface**
-- **Header**: ชื่อแอปพลิเคชันและปุ่ม logout
-- **Message Area**: ประวัติแชทที่เลื่อนได้พร้อมฟองข้อความของผู้ใช้/AI
-- **Input Area**: ช่องป้อนข้อความพร้อมปุ่มส่งและตัวบ่งชี้การพิมพ์
+- **Chat Layout**: Layout หลักสำหรับหน้าแชท (authenticated users only)
+- **Chat Sidebar**: แถบข้างพร้อมประวัติการสนทนา
+- **Message Components**: 
+  - ฟองข้อความของผู้ใช้และ AI แยกจากกัน
+  - Markdown rendering สำหรับข้อความที่มีการจัดรูปแบบ
+  - Code block component พร้อม syntax highlighting
+- **Prompt Input**: Input component ขั้นสูงพร้อม auto-resize
+- **New Chat Features**: 
+  - ปุ่มเริ่มแชทใหม่ (simple และ advanced)
+  - การจัดการ chat sessions
+- **Scroll Features**: ปุ่ม scroll to bottom และ auto-scroll
+- **Loading States**: Skeleton components สำหรับการโหลด
+
+### 🎨 **Design System (Shadcn/UI)**
+- **Base Components**: Button, Card, Input, Label, Textarea
+- **Layout Components**: Sheet, Sidebar, Separator, Popover
+- **Feedback Components**: Tooltip, Avatar, Skeleton
+- **Consistent Styling**: การใช้ Tailwind CSS และ CVA (Class Variance Authority)
+- **Dark/Light Mode Support**: รองรับ theme switching
+- **Accessibility**: รองรับ screen readers และ keyboard navigation
 - **Responsive Design**: ใช้งานได้ทั้งเดสก์ท็อปและมือถือ
 
-### 🎨 **Design System**
-- **Shadcn/UI Components**: Button, Card, Input, Label ที่สวยงาม
-- **Consistent Styling**: การใช้ Tailwind CSS อย่างสม่ำเสมอ
-- **Dark/Light Mode**: รองรับทั้งโหมดสว่างและมืด (จาก Shadcn/UI)
-- **Accessibility**: รองรับ screen readers และ keyboard navigation
+### ⚙️ **Settings & Configuration**
+- **Settings Directory**: Components สำหรับการตั้งค่าต่างๆ
+- **User Preferences**: การจัดการ preferences ของผู้ใช้
+- **Theme Management**: การเปลี่ยน theme และ appearance
+
+### 🔧 **Developer Features**
+- **Modular API Design**: API endpoints แยกตาม functionality
+- **Tutorial Endpoints**: Step-by-step learning endpoints
+- **Error Handling**: Comprehensive error handling และ user feedback
+- **Type Safety**: TypeScript ทั่วทั้งโปรเจ็กต์
 
 ## 🔐 Environment Variables
 
+สร้างไฟล์ `.env` ในไดเรกทอรีหลักและเพิ่มตัวแปรต่อไปนี้:
+
 | ตัวแปร | คำอธิบาย | จำเป็น |
 |--------|----------|--------|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL ของ Supabase project | ใช่ |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Supabase Anon/Public key | ใช่ |
-| `OPENAI_API_KEY` | OpenAI API key ของคุณ | ใช่ |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL ของ Supabase project | ✅ ใช่ |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Supabase Anon/Public key | ✅ ใช่ |
+| `OPENAI_API_KEY` | OpenAI API key ของคุณ | ✅ ใช่ |
 | `OPENAI_MODEL_NAME` | ชื่อโมเดล OpenAI ที่ใช้ | ไม่ (default: gpt-4o-mini) |
 | `GOOGLE_API_KEY` | Google AI API key (สำหรับ Gemini) | ไม่ |
-| `GOOGLE_MODEL_NAME` | ชื่อโมเดล Google ที่ใช้ | ไม่ |
+| `GOOGLE_MODEL_NAME` | ชื่อโมเดล Google ที่ใช้ | ไม่ (default: gemini-2.0-flash-exp) |
+| `AZURE_OPENAI_API_KEY` | Azure OpenAI API key | ไม่ |
+| `AZURE_OPENAI_API_INSTANCE_NAME` | Azure OpenAI instance name | ไม่ |
+| `AZURE_OPENAI_API_DEPLOYMENT_NAME` | Azure OpenAI deployment name | ไม่ |
+| `AZURE_OPENAI_API_VERSION` | Azure OpenAI API version | ไม่ |
+| `OPENROUTER_API_KEY` | OpenRouter API key | ไม่ |
+| `OPENROUTER_MODEL_NAME` | ชื่อโมเดลใน OpenRouter | ไม่ |
+| `OLLAMA_BASE_URL` | Ollama server URL | ไม่ (default: http://localhost:11434) |
+| `OLLAMA_MODEL_NAME` | ชื่อโมเดลใน Ollama | ไม่ |
+| `VLLM_BASE_URL` | vLLM server URL | ไม่ |
+| `VLLM_MODEL_NAME` | ชื่อโมเดลใน vLLM | ไม่ |
+| `GRADIENT_ACCESS_TOKEN` | Gradient AI access token | ไม่ |
+| `GRADIENT_WORKSPACE_ID` | Gradient AI workspace ID | ไม่ |
+| `GRADIENT_MODEL_ID` | Gradient AI model ID | ไม่ |
 
-### ตัวอย่างไฟล์ .env.local
+### ตัวอย่างไฟล์ .env
 ```env
-# === Supabase config =====
+# === Supabase config (จำเป็น) =====
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-anon-key
 
-# === OPENAI (ChatGPT) =====
+# === OPENAI (ChatGPT) - จำเป็น =====
 OPENAI_API_KEY=sk-your-openai-api-key
 OPENAI_MODEL_NAME="gpt-4o-mini"
 
-# === GOOGLE (Gemini) - Optional =====
+# === GOOGLE (Gemini) - ไม่บังคับ =====
 GOOGLE_API_KEY=your-google-api-key
-GOOGLE_MODEL_NAME="gemini-2.5-flash"
+GOOGLE_MODEL_NAME="gemini-2.0-flash-exp"
+
+# === AZURE OPENAI - ไม่บังคับ =====
+AZURE_OPENAI_API_KEY=your-azure-api-key
+AZURE_OPENAI_API_INSTANCE_NAME=your-instance-name
+AZURE_OPENAI_API_DEPLOYMENT_NAME=your-deployment-name
+AZURE_OPENAI_API_VERSION="2024-02-15-preview"
+
+# === OPENROUTER - ไม่บังคับ =====
+OPENROUTER_API_KEY=sk-or-v1-your-api-key
+OPENROUTER_MODEL_NAME="meta-llama/llama-3.2-3b-instruct:free"
+
+# === OLLAMA (Local) - ไม่บังคับ =====
+OLLAMA_BASE_URL="http://localhost:11434"
+OLLAMA_MODEL_NAME="llama3.2"
+
+# === vLLM (Self-hosted) - ไม่บังคับ =====
+VLLM_BASE_URL="http://localhost:8000"
+VLLM_MODEL_NAME="microsoft/DialoGPT-medium"
+
+# === GRADIENT AI - ไม่บังคับ =====
+GRADIENT_ACCESS_TOKEN=your-gradient-access-token
+GRADIENT_WORKSPACE_ID=your-workspace-id
+GRADIENT_MODEL_ID=your-model-id
 ```
+
+**หมายเหตุ**: คุณสามารถใช้ provider เดียวหรือหลาย providers พร้อมกันได้ โดยระบบจะเลือกใช้ provider แรกที่มี environment variables ครบ
 
 ## 🚀 การ Deploy
 
