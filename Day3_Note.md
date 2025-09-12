@@ -4,6 +4,7 @@
 - [โครงสร้างโปรเจ็กต์](#-โครงสร้างโปรเจ็กต์)
 - [LangChain Tutorial Endpoints (Continue)](#-langchain-tutorial-endpoints-continue)
 - [เสริมความรู้เรื่อง Edge Runtime](#-เสริมความรู้เรื่อง-edge-runtime)
+- [การตั้งค่า Supabase Authentication](#-การตั้งค่า-supabase-authentication)
 - [สรุป](#-สรุป)
 
 ## 🛠️ การติดตั้งและตั้งค่า
