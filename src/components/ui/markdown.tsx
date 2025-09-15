@@ -5,6 +5,14 @@ import ReactMarkdown, { Components } from "react-markdown"
 import remarkBreaks from "remark-breaks"
 import remarkGfm from "remark-gfm"
 import { CodeBlock, CodeBlockCode } from "./code-block"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table"
 
 export type MarkdownProps = {
   children: string
@@ -54,6 +62,30 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   pre: function PreComponent({ children }) {
     return <>{children}</>
+  },
+  table: function TableComponent({ children }) {
+    return (
+      <div className="my-4 overflow-x-auto">
+        <Table>
+          {children}
+        </Table>
+      </div>
+    )
+  },
+  thead: function TableHeaderComponent({ children }) {
+    return <TableHeader>{children}</TableHeader>
+  },
+  tbody: function TableBodyComponent({ children }) {
+    return <TableBody>{children}</TableBody>
+  },
+  tr: function TableRowComponent({ children }) {
+    return <TableRow>{children}</TableRow>
+  },
+  th: function TableHeadComponent({ children }) {
+    return <TableHead>{children}</TableHead>
+  },
+  td: function TableCellComponent({ children }) {
+    return <TableCell>{children}</TableCell>
   },
 }
 
