@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Anuphan, Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/lib/theme-provider"
 
 const anuphan = Anuphan({
   variable: "--font-anuphan",
@@ -25,7 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${anuphan.variable} ${inter.variable}`}>
-        {children}
+       <ThemeProvider
+          defaultTheme="system"
+          storageKey="ai-chatbot-theme"
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

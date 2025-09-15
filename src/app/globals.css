@@ -124,3 +124,63 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* User message styling for dark mode */
+.dark .user-message {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important;
+  color: white !important;
+}
+
+.user-message {
+  transition: background-color 0.2s ease;
+}
+
+/* Custom Scrollbar Styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156 163 175) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(156 163 175);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(107 114 128);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark mode scrollbar */
+.dark * {
+  scrollbar-color: rgb(75 85 99) rgb(31 41 55);
+}
+
+.dark *::-webkit-scrollbar-track {
+  background: rgb(31 41 55);
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: rgb(75 85 99);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(107 114 128);
+}
+
+.dark *::-webkit-scrollbar-corner {
+  background: rgb(31 41 55);
+}

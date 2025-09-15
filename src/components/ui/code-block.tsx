@@ -25,9 +25,8 @@ function CodeBlock({
   return (
     <div
       className={cn(
-        "not-prose flex w-full flex-col overflow-clip border my-4",
-        "border-border bg-zinc-950 text-zinc-100 rounded-xl shadow-lg",
-        "dark:bg-zinc-900 dark:border-zinc-800",
+        "not-prose flex w-full flex-col overflow-clip my-6 rounded-lg",
+        "bg-background",
         className
       )}
       {...props}
@@ -50,7 +49,7 @@ type CodeBlockHeaderProps = {
 
 function CodeBlockHeader({ title, language }: CodeBlockHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+    <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/50">
       <div className="flex items-center gap-2">
         {/* Traffic light dots */}
         <div className="flex items-center gap-1.5">
@@ -59,12 +58,12 @@ function CodeBlockHeader({ title, language }: CodeBlockHeaderProps) {
           <div className="w-3 h-3 rounded-full bg-green-500" />
         </div>
         {title && (
-          <span className="text-sm text-zinc-400 ml-2">{title}</span>
+          <span className="text-sm text-muted-foreground ml-2">{title}</span>
         )}
       </div>
       <div className="flex items-center gap-2">
         {language && (
-          <span className="text-xs text-zinc-500 uppercase font-mono">
+          <span className="text-xs text-muted-foreground uppercase font-mono">
             {language}
           </span>
         )}
@@ -87,7 +86,7 @@ export type CodeBlockCodeProps = {
 function CodeBlockCode({
   code,
   language = "tsx",
-  theme = "github-dark-dimmed",
+  theme,
   className,
   showLineNumbers = false,
   allowCopy = true,
@@ -105,27 +104,70 @@ function CodeBlockCode({
         return
       }
 
-      const html = await codeToHtml(code, { 
-        lang: language, 
-        theme,
-        transformers: showLineNumbers ? [{
-          pre(node) {
-            node.properties.style = `${node.properties.style || ''}; counter-reset: line;`
-          },
-          line(node) {
-            node.children.unshift({
-              type: 'element',
-              tagName: 'span',
-              properties: {
-                className: ['line-number'],
-                style: 'counter-increment: line; display: inline-block; width: 1rem; margin-right: 1rem; color: #6b7280; text-align: right;'
-              },
-              children: []
-            })
-          }
-        }] : []
-      })
-      setHighlightedHtml(html)
+      try {
+        // List of commonly supported languages
+        const supportedLanguages = [
+          'javascript', 'typescript', 'jsx', 'tsx', 'python', 'java', 'c', 'cpp',
+          'csharp', 'php', 'ruby', 'go', 'rust', 'swift', 'kotlin', 'scala',
+          'html', 'css', 'scss', 'sass', 'less', 'xml', 'json', 'yaml', 'toml',
+          'markdown', 'sql', 'bash', 'shell', 'powershell', 'dockerfile', 'nginx',
+          'apache', 'lua', 'perl', 'r', 'julia', 'matlab', 'octave', 'fortran',
+          'cobol', 'ada', 'pascal', 'delphi', 'vb', 'vbnet', 'fsharp', 'ocaml',
+          'haskell', 'elm', 'clojure', 'erlang', 'elixir', 'dart', 'groovy',
+          'makefile', 'cmake', 'gradle', 'ant', 'maven', 'sbt', 'bazel',
+          'terraform', 'hcl', 'graphql', 'proto', 'thrift', 'avro'
+        ]
+
+        // Use the language if supported, otherwise fall back to 'text'
+        const safeLanguage = supportedLanguages.includes(language.toLowerCase()) 
+          ? language 
+          : 'text'
+
+        // Auto detect theme based on system preference if not provided
+        const autoTheme = theme || (
+          typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'github-dark-dimmed'
+            : 'github-light'
+        )
+
+        const html = await codeToHtml(code, { 
+          lang: safeLanguage, 
+          theme: autoTheme,
+          transformers: [
+            // Always remove background from pre tag
+            {
+              pre(node) {
+                // Remove background style but keep other styles, remove padding override
+                const existingStyle = (node.properties.style || '') as string
+                node.properties.style = existingStyle.replace(/background[^;]*;?/gi, '').replace(/padding[^;]*;?/gi, '') + ' background: transparent !important;'
+                if (showLineNumbers) {
+                  node.properties.style += ' counter-reset: line;'
+                }
+              }
+            },
+            // Add line numbers if needed
+            ...(showLineNumbers ? [{
+              line(node: { children: unknown[] }) {
+                node.children.unshift({
+                  type: 'element',
+                  tagName: 'span',
+                  properties: {
+                    className: ['line-number'],
+                    style: 'counter-increment: line; display: inline-block; width: 1rem; margin-right: 1rem; color: #6b7280; text-align: right;'
+                  },
+                  children: []
+                })
+              }
+            }] : [])
+          ]
+        })
+        setHighlightedHtml(html)
+      } catch (error) {
+        console.warn(`Language '${language}' not supported, falling back to plain text:`, error)
+        // Fallback to plain text if language is not supported
+        const fallbackHtml = `<pre style="background: transparent; color: inherit; padding: 2.5rem; margin: 0; border-radius: 0.5rem; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, monospace;"><code>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`
+        setHighlightedHtml(fallbackHtml)
+      }
     }
     highlight()
   }, [code, language, theme, showLineNumbers])
@@ -153,26 +195,37 @@ function CodeBlockCode({
   }
 
   const classNames = cn(
-    "relative w-full overflow-x-auto text-[13px] bg-zinc-950",
-    "[&>pre]:px-4 [&>pre]:py-4 [&>pre]:bg-transparent",
-    "[&>pre>code]:bg-transparent [&>pre>code]:p-0",
+    "relative w-full overflow-x-auto text-sm leading-relaxed",
+    "bg-muted/30 text-foreground rounded-lg",
+    "dark:bg-slate-900/80 dark:text-slate-100",
+    "[&>pre]:px-6 [&>pre]:py-6 [&>pre]:bg-transparent [&>pre]:m-0",
+    "[&>pre>code]:bg-transparent [&>pre>code]:p-0 [&>pre>code]:font-mono",
     showLineNumbers && "[&>pre>code]:grid [&>pre>code]:gap-0",
     className
   )
 
   // SSR fallback: render plain code if not hydrated yet
   return (
-    <div className="relative group">
+    <div className="relative code-block-container group/code">
+      {/* Language label */}
+      {language && (
+        <div className="mb-2">
+          <span className="text-xs text-muted-foreground font-mono uppercase bg-muted/50 px-2 py-1 rounded">
+            {language}
+          </span>
+        </div>
+      )}
+
       {/* Action buttons */}
       {(allowCopy || allowDownload) && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+        <div className="absolute top-2 right-2 opacity-0 group-hover/code:opacity-100 transition-opacity duration-200 z-10">
           <div className="flex items-center gap-1">
             {allowCopy && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCopy}
-                className="h-8 w-8 p-0 bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 hover:text-zinc-100"
+                className="h-8 w-8 p-0 bg-background/80 hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50"
               >
                 {copied ? (
                   <Check className="h-4 w-4" />
@@ -186,7 +239,7 @@ function CodeBlockCode({
                 variant="ghost"
                 size="sm"
                 onClick={handleDownload}
-                className="h-8 w-8 p-0 bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 hover:text-zinc-100"
+                className="h-8 w-8 p-0 bg-background/80 hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50"
               >
                 <Download className="h-4 w-4" />
               </Button>
@@ -203,7 +256,7 @@ function CodeBlockCode({
         />
       ) : (
         <div className={classNames} {...props}>
-          <pre className="px-4 py-4">
+          <pre className="px-6 py-6 font-mono">
             <code>{code}</code>
           </pre>
         </div>
