@@ -495,6 +495,11 @@ Endpoint หลักสำหรับจัดการการสนทน�
 |--------|----------|--------|
 | `NEXT_PUBLIC_SUPABASE_URL` | URL ของ Supabase project | ✅ ใช่ |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Supabase Anon/Public key | ✅ ใช่ |
+| `PG_HOST` | โฮสต์ของ PostgreSQL (ถ้าใช้ RAG + pgvector) | ✅ ใช่ |
+| `PG_PORT` | พอร์ตของ PostgreSQL (default: 6543) | | ไม่ |
+| `PG_USER` | ชื่อผู้ใช้ PostgreSQL | ✅ ใช่ |
+| `PG_PASSWORD` | รหัสผ่าน PostgreSQL | ✅ ใช่ |
+| `PG_DATABASE` | ชื่อฐานข้อมูล PostgreSQL | ไม่ |
 | `OPENAI_API_KEY` | OpenAI API key ของคุณ | ✅ ใช่ |
 | `OPENAI_MODEL_NAME` | ชื่อโมเดล OpenAI ที่ใช้ | ไม่ (default: gpt-4o-mini) |
 | `GOOGLE_API_KEY` | Google AI API key (สำหรับ Gemini) | ไม่ |
@@ -518,6 +523,14 @@ Endpoint หลักสำหรับจัดการการสนทน�
 # === Supabase config (จำเป็น) =====
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-anon-key
+
+# ===  postgres config =====
+# การใช้กับ RAG + LangChain + pgvector แนะนำเป็นแบบ Transaction pooler (Shared Pooler)
+PG_HOST=your-postgres-host
+PG_PORT=6543
+PG_USER=your-postgres-user
+PG_PASSWORD=your-postgres-password
+PG_DATABASE=postgres
 
 # === OPENAI (ChatGPT) - จำเป็น =====
 OPENAI_API_KEY=sk-your-openai-api-key

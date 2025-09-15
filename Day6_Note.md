@@ -1,1 +1,0 @@
-## AI Chatbot with LangChain & Next.js - Day 6
