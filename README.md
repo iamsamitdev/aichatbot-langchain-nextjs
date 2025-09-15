@@ -9,6 +9,9 @@
 - **การรวม LangChain**: ใช้ LangChain สำหรับการจัดการการสนทนา AI ขั้นสูง
 - **Multi-Provider Support**: รองรับ OpenAI, Google AI, Azure, OpenRouter, Ollama, vLLM และ Gradient AI
 - **Supabase Authentication**: ระบบ login/register/password reset ที่สมบูรณ์แบบ
+- **Chat History**: ระบบจัดเก็บและแสดงประวัติการสนทนา
+- **Model Selector**: เลือก AI model ที่ต้องการใช้งาน
+- **Math/LaTeX Rendering**: แสดงสูตรทางคณิตศาสตร์ด้วย KaTeX
 - **Chat Sidebar**: ประวัติการสนทนาและการจัดการ chat sessions
 - **UI ที่ทันสมัย**: อินเทอร์เฟซแชทที่สวยงามด้วย Shadcn/UI และ Tailwind CSS
 - **Next.js 15 App Router**: ใช้ฟีเจอร์ล่าสุดของ Next.js และ file-based routing
@@ -127,13 +130,19 @@ aichatbot-langchain-nextjs/
 │   │   │   │   └── route.ts          # Step 3: Prompt templates
 │   │   │   ├── chat_04_stream/
 │   │   │   │   └── route.ts          # Step 4: Streaming responses
+│   │   │   ├── chat_05_history/
+│   │   │   │   └── route.ts          # Step 5: Chat history management
 │   │   │   ├── test/
 │   │   │   │   └── route.ts          # Test API endpoint
 │   │   │   └── route.ts              # Base API routes (GET, POST, PUT, DELETE)
 │   │   ├── chat/
 │   │   │   ├── layout.tsx            # Chat layout (protected)
-│   │   │   └── page.tsx              # Chat interface (authenticated users only)
-│   │   ├── globals.css               # Global styles with Tailwind
+│   │   │   ├── page.tsx              # Chat interface (authenticated users only)
+│   │   │   ├── page_archive.tsx      # Archived chat page
+│   │   │   └── [id]/
+│   │   │       └── page.tsx          # Individual chat conversation page
+│   │   ├── favicon.ico               # App favicon
+│   │   ├── globals.css               # Global styles with Tailwind + KaTeX CSS
 │   │   ├── layout.tsx                # Root layout
 │   │   └── page.tsx                  # Landing/home page
 │   ├── components/
@@ -143,9 +152,10 @@ aichatbot-langchain-nextjs/
 │   │   │   ├── card.tsx              # Card component (Shadcn/UI)
 │   │   │   ├── chat-container.tsx    # Chat container component
 │   │   │   ├── code-block.tsx        # Code syntax highlighting component
+│   │   │   ├── dropdown-menu.tsx     # Dropdown menu component (Shadcn/UI)
 │   │   │   ├── input.tsx             # Input component (Shadcn/UI)
 │   │   │   ├── label.tsx             # Label component (Shadcn/UI)
-│   │   │   ├── markdown.tsx          # Markdown rendering component
+│   │   │   ├── markdown.tsx          # Markdown + LaTeX rendering component
 │   │   │   ├── message.tsx           # Chat message component
 │   │   │   ├── popover.tsx           # Popover component (Shadcn/UI)
 │   │   │   ├── prompt-input.tsx      # Enhanced prompt input component
@@ -154,7 +164,9 @@ aichatbot-langchain-nextjs/
 │   │   │   ├── sheet.tsx             # Sheet component (Shadcn/UI)
 │   │   │   ├── sidebar.tsx           # Sidebar component
 │   │   │   ├── skeleton.tsx          # Loading skeleton component
+│   │   │   ├── table.tsx             # Table component (Shadcn/UI)
 │   │   │   ├── textarea.tsx          # Textarea component (Shadcn/UI)
+│   │   │   ├── theme-toggle.tsx      # Dark/Light mode toggle
 │   │   │   └── tooltip.tsx           # Tooltip component (Shadcn/UI)
 │   │   ├── settings/
 │   │   │   ├── account-tab.tsx       # Account settings tab
@@ -166,24 +178,30 @@ aichatbot-langchain-nextjs/
 │   │   │   ├── personalization-tab.tsx # UI personalization settings
 │   │   │   ├── schedules-tab.tsx     # Schedules settings
 │   │   │   └── security-tab.tsx      # Security settings tab
+│   │   ├── chat-history.tsx          # Chat history management component
 │   │   ├── chat-sidebar.tsx          # Chat sidebar with conversation history
 │   │   ├── forgot-password-form.tsx  # Forgot password form (Supabase UI)
 │   │   ├── login-form.tsx            # Login form component (Supabase UI)
 │   │   ├── logout-button.tsx         # Logout button component (Supabase UI)
+│   │   ├── model-selector.tsx        # AI model selection component
 │   │   ├── new-chat-simple.tsx       # Simple new chat button
 │   │   ├── new-chat.tsx              # Advanced new chat component
 │   │   ├── sign-up-form.tsx          # Registration form (Supabase UI)
 │   │   └── update-password-form.tsx  # Update password form (Supabase UI)
+│   ├── constants/
+│   │   └── models.ts                 # AI model constants and configurations
 │   ├── contexts/
 │   │   └── chat-context.tsx          # Chat context provider for state management
 │   ├── hooks/
 │   │   └── use-mobile.ts             # Custom hook for mobile detection
 │   ├── lib/
-│   │   ├── clients.ts                # Supabase client configurations
-│   │   ├── middlewares.ts            # Authentication middlewares
+│   │   ├── client.ts                 # Supabase client configurations
+│   │   ├── custom-chat-transport.ts  # Custom chat transport layer
+│   │   ├── middleware.ts             # Authentication middlewares
 │   │   ├── server.ts                 # Server-side Supabase utilities
+│   │   ├── theme-provider.tsx        # Theme provider for dark/light mode
 │   │   └── utils.ts                  # Utility functions (Tailwind merge, etc.)
-│   └── middlewares.ts                # Next.js middleware for auth protection
+│   └── middleware.ts                 # Next.js middleware for auth protection
 ├── public/                           # Static assets
 │   ├── file.svg
 │   ├── globe.svg
@@ -192,12 +210,15 @@ aichatbot-langchain-nextjs/
 │   └── window.svg
 ├── .env                              # Environment variables (สร้างไฟล์นี้)
 ├── .env.example                      # Template สำหรับ environment variables
+├── .gitignore                        # Git ignore rules
 ├── components.json                   # Shadcn/UI configuration
 ├── Day1_Note.md                      # บันทึกการอบรม Day 1
 ├── Day2_Note.md                      # บันทึกการอบรม Day 2
 ├── Day3_Note.md                      # บันทึกการอบรม Day 3
 ├── Day4_Note.md                      # บันทึกการอบรม Day 4
+├── Day5_Note.md                      # บันทึกการอบรม Day 5
 ├── eslint.config.mjs                 # ESLint configuration
+├── next-env.d.ts                     # Next.js TypeScript declarations
 ├── next.config.ts                    # Next.js configuration
 ├── package.json                      # Dependencies และ scripts
 ├── postcss.config.mjs                # PostCSS configuration
@@ -224,17 +245,18 @@ aichatbot-langchain-nextjs/
 - **`/api/chat_02_request/`**: ขั้นตอนที่ 2 - การจัดการ HTTP requests
 - **`/api/chat_03_template/`**: ขั้นตอนที่ 3 - การใช้ Prompt templates
 - **`/api/chat_04_stream/`**: ขั้นตอนที่ 4 - การตอบสนองแบบ streaming
+- **`/api/chat_05_history/`**: ขั้นตอนที่ 5 - การจัดการประวัติการสนทนา
 
 #### 🎨 **UI Components**
 - **`/components/ui/`**: 
-  - **Shadcn/UI Components**: Button, Card, Input, Label, Avatar, Tooltip
-  - **Chat Components**: Message, Chat-container, Markdown, Code-block
+  - **Shadcn/UI Components**: Button, Card, Input, Label, Avatar, Tooltip, Dropdown-menu, Table, Theme-toggle
+  - **Chat Components**: Message, Chat-container, Markdown (with LaTeX support), Code-block
   - **Layout Components**: Sidebar, Sheet, Popover, Separator
   - **Form Components**: Textarea, Prompt-input
   - **Utility Components**: Skeleton (loading), Scroll-button
 - **`/components/`**: 
   - **Authentication Forms**: Login, Sign-up, Forgot-password, Update-password
-  - **Chat Features**: Chat-sidebar, New-chat (simple & advanced)
+  - **Chat Features**: Chat-sidebar, Chat-history, New-chat (simple & advanced), Model-selector
   - **User Actions**: Logout-button
 - **`/components/settings/`**: 
   - **Account Management**: Account-tab สำหรับจัดการบัญชีผู้ใช้
@@ -257,9 +279,16 @@ aichatbot-langchain-nextjs/
   - Responsive design utilities
   - Mobile-specific UI behaviors
 
+#### 📦 **Constants & Configuration**
+- **`/constants/models.ts`**: ค่าคงที่และการตั้งค่าสำหรับ AI models
+  - Model configurations
+  - Provider settings
+
 - **`/lib/`**: 
   - **Supabase**: Client configurations, server utilities
   - **Authentication**: Middleware functions
+  - **Theme Provider**: Dark/light mode management
+  - **Chat Transport**: Custom chat transport layer
   - **Utilities**: Tailwind merge, helper functions
 
 #### 🛡️ **Middleware & Protection**
@@ -307,6 +336,20 @@ aichatbot-langchain-nextjs/
 }
 ```
 
+### 📐 Math & Markdown Rendering
+```json
+{
+  "react-markdown": "React component สำหรับ render Markdown",
+  "remark-gfm": "GitHub Flavored Markdown support",
+  "remark-breaks": "Support line breaks ใน Markdown",
+  "remark-math": "Support LaTeX math notation ใน Markdown",
+  "rehype-katex": "Render LaTeX math เป็น HTML ด้วย KaTeX",
+  "katex": "Fast math typesetting library",
+  "marked": "Markdown parser และ compiler",
+  "shiki": "Syntax highlighter สำหรับ code blocks"
+}
+```
+
 ### 🛠️ Development Tools
 ```json
 {
@@ -339,6 +382,7 @@ npm run lint     # รัน ESLint
 - **POST `/api/chat_02_request`**: ทดสอบการจัดการ request/response
 - **POST `/api/chat_03_template`**: ทดสอบ prompt templates
 - **POST `/api/chat_04_stream`**: ทดสอบ streaming responses
+- **POST `/api/chat_05_history`**: ทดสอบการจัดการประวัติการสนทนา
 
 ### POST /api/chat (Production)
 Endpoint หลักสำหรับจัดการการสนทนากับ AI
@@ -383,9 +427,16 @@ Endpoint หลักสำหรับจัดการการสนทน�
 ### 💬 **Chat Interface**
 - **Chat Layout**: Layout หลักสำหรับหน้าแชท (authenticated users only)
 - **Chat Sidebar**: แถบข้างพร้อมประวัติการสนทนา
+- **Chat History**: ระบบจัดเก็บและแสดงประวัติการสนทนาแบบเรียลไทม์
+- **Model Selector**: เลือก AI model ที่ต้องการใช้งาน (OpenAI, Google AI, etc.)
+- **Individual Chat Pages**: หน้าแสดงการสนทนาแต่ละเรื่องแบบแยกหน้า
 - **Message Components**: 
   - ฟองข้อความของผู้ใช้และ AI แยกจากกัน
   - Markdown rendering สำหรับข้อความที่มีการจัดรูปแบบ
+  - **LaTeX/Math Support**: แสดงสูตรทางคณิตศาสตร์ด้วย KaTeX
+    - รองรับ inline math: `\( สูตร \)` → $สูตร$
+    - รองรับ display math: `\[ สูตร \]` → $$สูตร$$
+    - แปลงอัตโนมัติจาก AI response format
   - Code block component พร้อม syntax highlighting
 - **Prompt Input**: Input component ขั้นสูงพร้อม auto-resize
 - **New Chat Features**: 

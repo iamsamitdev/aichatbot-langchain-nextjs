@@ -17,7 +17,7 @@ export default function NewChatSimple() {
   // ใช้ useChat hook เพื่อจัดการสถานะการสนทนา
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
-      api: '/api/chat_04_stream'
+      api: '/api/chat_04_stream',
     })
   })
 
