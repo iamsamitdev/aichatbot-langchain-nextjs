@@ -9,7 +9,10 @@
 - **การรวม LangChain**: ใช้ LangChain สำหรับการจัดการการสนทนา AI ขั้นสูง
 - **Multi-Provider Support**: รองรับ OpenAI, Google AI, Azure, OpenRouter, Ollama, vLLM และ Gradient AI
 - **Supabase Authentication**: ระบบ login/register/password reset ที่สมบูรณ์แบบ
-- **Chat History**: ระบบจัดเก็บและแสดงประวัติการสนทนา
+- **Chat History & Sessions**: ระบบจัดเก็บและแสดงประวัติการสนทนาแบบเรียลไทม์
+- **Optimistic Session Management**: การจัดการ session แบบ optimistic เพื่อ UX ที่ดีขึ้น
+- **Smart Message Summarization**: ระบบสรุปข้อความอัตโนมัติเพื่อประหยัด token
+- **Token Management**: การจัดการและนับ token ด้วย tiktoken
 - **Model Selector**: เลือก AI model ที่ต้องการใช้งาน
 - **Math/LaTeX Rendering**: แสดงสูตรทางคณิตศาสตร์ด้วย KaTeX
 - **Chat Sidebar**: ประวัติการสนทนาและการจัดการ chat sessions
@@ -132,6 +135,18 @@ aichatbot-langchain-nextjs/
 │   │   │   │   └── route.ts          # Step 4: Streaming responses
 │   │   │   ├── chat_05_history/
 │   │   │   │   └── route.ts          # Step 5: Chat history management
+│   │   │   ├── chat_05_optimistic/
+│   │   │   │   └── route.ts          # Step 5.1: Optimistic session handling
+│   │   │   ├── chat_06_history_optimistic/
+│   │   │   │   ├── route.ts          # Step 6.1: Advanced optimistic history
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # Session management endpoints
+│   │   │   ├── chat_06_history_optimize/
+│   │   │   │   ├── route.ts          # Step 6.2: History optimization & summarization
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # Optimized session endpoints
+│   │   │   ├── chat_06_summary/
+│   │   │   │   └── route.ts          # Step 6.3: Smart message summarization
 │   │   │   ├── test/
 │   │   │   │   └── route.ts          # Test API endpoint
 │   │   │   └── route.ts              # Base API routes (GET, POST, PUT, DELETE)
@@ -193,6 +208,8 @@ aichatbot-langchain-nextjs/
 │   ├── contexts/
 │   │   └── chat-context.tsx          # Chat context provider for state management
 │   ├── hooks/
+│   │   ├── use-chat-history.ts       # Custom hook for chat history management
+│   │   ├── use-chat-sessions.ts      # Custom hook for session management
 │   │   └── use-mobile.ts             # Custom hook for mobile detection
 │   ├── lib/
 │   │   ├── client.ts                 # Supabase client configurations
@@ -216,7 +233,7 @@ aichatbot-langchain-nextjs/
 ├── Day2_Note.md                      # บันทึกการอบรม Day 2
 ├── Day3_Note.md                      # บันทึกการอบรม Day 3
 ├── Day4_Note.md                      # บันทึกการอบรม Day 4
-├── Day5_Note.md                      # บันทึกการอบรม Day 5
+├── Day6_Note.md                      # บันทึกการอบรม Day 6
 ├── eslint.config.mjs                 # ESLint configuration
 ├── next-env.d.ts                     # Next.js TypeScript declarations
 ├── next.config.ts                    # Next.js configuration
@@ -246,6 +263,10 @@ aichatbot-langchain-nextjs/
 - **`/api/chat_03_template/`**: ขั้นตอนที่ 3 - การใช้ Prompt templates
 - **`/api/chat_04_stream/`**: ขั้นตอนที่ 4 - การตอบสนองแบบ streaming
 - **`/api/chat_05_history/`**: ขั้นตอนที่ 5 - การจัดการประวัติการสนทนา
+- **`/api/chat_05_optimistic/`**: ขั้นตอนที่ 5.1 - การจัดการ session แบบ optimistic
+- **`/api/chat_06_history_optimistic/`**: ขั้นตอนที่ 6.1 - ประวัติแชทแบบ optimistic ขั้นสูง
+- **`/api/chat_06_history_optimize/`**: ขั้นตอนที่ 6.2 - การปรับปรุงประสิทธิภาพประวัติ
+- **`/api/chat_06_summary/`**: ขั้นตอนที่ 6.3 - ระบบสรุปข้อความอัจฉริยะ
 
 #### 🎨 **UI Components**
 - **`/components/ui/`**: 
@@ -278,6 +299,12 @@ aichatbot-langchain-nextjs/
 - **`/hooks/use-mobile.ts`**: Custom hook สำหรับตรวจจับอุปกรณ์มือถือ
   - Responsive design utilities
   - Mobile-specific UI behaviors
+- **`/hooks/use-chat-history.ts`**: Custom hook สำหรับจัดการประวัติการแชท
+  - Chat history state management
+  - History loading และ caching
+- **`/hooks/use-chat-sessions.ts`**: Custom hook สำหรับจัดการ chat sessions
+  - Session creation และ management
+  - Session switching และ navigation
 
 #### 📦 **Constants & Configuration**
 - **`/constants/models.ts`**: ค่าคงที่และการตั้งค่าสำหรับ AI models
@@ -350,6 +377,17 @@ aichatbot-langchain-nextjs/
 }
 ```
 
+### ⚡ Performance & Optimization
+```json
+{
+  "@langchain/core": "LangChain core utilities สำหรับ message handling",
+  "tiktoken": "Token counting และ management สำหรับ AI models",
+  "uuid": "การสร้าง unique identifiers สำหรับ sessions",
+  "pg": "PostgreSQL client สำหรับ database operations",
+  "use-stick-to-bottom": "Auto-scroll utilities สำหรับ chat interface"
+}
+```
+
 ### 🛠️ Development Tools
 ```json
 {
@@ -383,6 +421,14 @@ npm run lint     # รัน ESLint
 - **POST `/api/chat_03_template`**: ทดสอบ prompt templates
 - **POST `/api/chat_04_stream`**: ทดสอบ streaming responses
 - **POST `/api/chat_05_history`**: ทดสอบการจัดการประวัติการสนทนา
+- **POST `/api/chat_05_optimistic`**: ทดสอบการจัดการ session แบบ optimistic
+- **POST `/api/chat_06_history_optimistic`**: ระบบประวัติแชทแบบ optimistic ขั้นสูง
+- **POST `/api/chat_06_history_optimize`**: ระบบปรับปรุงประสิทธิภาพและ token management
+- **POST `/api/chat_06_summary`**: ระบบสรุปข้อความอัตโนมัติ
+
+### Session Management Endpoints
+- **POST `/api/chat_06_history_optimistic/session`**: จัดการ session แบบ optimistic
+- **POST `/api/chat_06_history_optimize/session`**: จัดการ session พร้อม optimization
 
 ### POST /api/chat (Production)
 Endpoint หลักสำหรับจัดการการสนทนากับ AI
@@ -428,6 +474,9 @@ Endpoint หลักสำหรับจัดการการสนทน�
 - **Chat Layout**: Layout หลักสำหรับหน้าแชท (authenticated users only)
 - **Chat Sidebar**: แถบข้างพร้อมประวัติการสนทนา
 - **Chat History**: ระบบจัดเก็บและแสดงประวัติการสนทนาแบบเรียลไทม์
+- **Optimistic Session Management**: การจัดการ session แบบ optimistic เพื่อประสบการณ์ที่รวดเร็ว
+- **Smart Message Summarization**: ระบบสรุปข้อความอัตโนมัติเพื่อประหยัด token
+- **Token Management**: การนับและจัดการ token ด้วย tiktoken
 - **Model Selector**: เลือก AI model ที่ต้องการใช้งาน (OpenAI, Google AI, etc.)
 - **Individual Chat Pages**: หน้าแสดงการสนทนาแต่ละเรื่องแบบแยกหน้า
 - **Message Components**: 
@@ -474,18 +523,33 @@ Endpoint หลักสำหรับจัดการการสนทน�
   - Real-time updates และ synchronization
 - **Custom Hooks**: 
   - **useMobile**: Hook สำหรับตรวจจับและจัดการ responsive design
+  - **useChatHistory**: Hook สำหรับจัดการประวัติการแชท
+  - **useChatSessions**: Hook สำหรับจัดการ chat sessions
   - **Auto-responsive**: การปรับ UI ตามขนาดหน้าจอโดยอัตโนมัติ
 - **Context Providers**: Centralized state management pattern
 
+### 🚀 **Performance & Optimization Features**
+- **Optimistic UI Updates**: การอัปเดต UI แบบ optimistic เพื่อประสบการณ์ที่รวดเร็ว
+- **Token Counting & Management**: การนับและจัดการ token อย่างมีประสิทธิภาพ
+- **Message Trimming**: การตัดข้อความเก่าเพื่อไม่ให้เกิน token limit
+- **Smart Summarization**: การสรุปข้อความอัตโนมัติเพื่อประหยัด token
+- **Database Connection Pooling**: การจัดการ database connection อย่างมีประสิทธิภาพ
+- **Background Task Processing**: การประมวลผล task ในเบื้องหลังโดยไม่กระทบ UX
+- **Stream Processing**: การประมวลผล streaming response แบบ real-time
+
 ### 🔧 **Developer Features**
 - **Modular API Design**: API endpoints แยกตาม functionality
-- **Tutorial Endpoints**: Step-by-step learning endpoints
+- **Tutorial Endpoints**: Step-by-step learning endpoints (chat_01 ถึง chat_06)
+- **Progressive Learning Path**: เรียนรู้จากพื้นฐานไปสู่ขั้นสูง
+  - Basic chat → Request handling → Templates → Streaming → History → Optimization
 - **Error Handling**: Comprehensive error handling และ user feedback
 - **Type Safety**: TypeScript ทั่วทั้งโปรเจ็กต์
 - **Context Pattern**: React Context API สำหรับ global state management
 - **Custom Hooks**: Reusable hooks สำหรับ common functionalities
 - **Responsive Design**: Built-in mobile detection และ adaptive UI
 - **Component Architecture**: Modular และ reusable component design
+- **Database Schema**: Well-structured PostgreSQL schema สำหรับ chat และ session management
+- **Performance Monitoring**: Built-in logging และ performance tracking
 
 ## 🔐 Environment Variables
 
@@ -511,7 +575,11 @@ Endpoint หลักสำหรับจัดการการสนทน�
 | `VLLM_MODEL_NAME` | ชื่อโมเดลใน vLLM | ไม่ |
 | `GRADIENT_ACCESS_TOKEN` | Gradient AI access token | ไม่ |
 | `GRADIENT_WORKSPACE_ID` | Gradient AI workspace ID | ไม่ |
-| `GRADIENT_MODEL_ID` | Gradient AI model ID | ไม่ |
+| `PG_HOST` | PostgreSQL host address | ไม่ (สำหรับ local PostgreSQL) |
+| `PG_PORT` | PostgreSQL port number | ไม่ (default: 5432) |
+| `PG_USER` | PostgreSQL username | ไม่ (สำหรับ local PostgreSQL) |
+| `PG_PASSWORD` | PostgreSQL password | ไม่ (สำหรับ local PostgreSQL) |
+| `PG_DATABASE` | PostgreSQL database name | ไม่ (สำหรับ local PostgreSQL) |
 
 ### ตัวอย่างไฟล์ .env
 ```env
@@ -549,9 +617,19 @@ VLLM_MODEL_NAME="microsoft/DialoGPT-medium"
 GRADIENT_ACCESS_TOKEN=your-gradient-access-token
 GRADIENT_WORKSPACE_ID=your-workspace-id
 GRADIENT_MODEL_ID=your-model-id
+
+# === PostgreSQL (Local) - ไม่บังคับ =====
+PG_HOST=localhost
+PG_PORT=5432
+PG_USER=your-postgres-user
+PG_PASSWORD=your-postgres-password
+PG_DATABASE=aichatbot_db
 ```
 
-**หมายเหตุ**: คุณสามารถใช้ provider เดียวหรือหลาย providers พร้อมกันได้ โดยระบบจะเลือกใช้ provider แรกที่มี environment variables ครบ
+**หมายเหตุ**: 
+- คุณสามารถใช้ provider เดียวหรือหลาย providers พร้อมกันได้ โดยระบบจะเลือกใช้ provider แรกที่มี environment variables ครบ
+- สำหรับ PostgreSQL: หากไม่ได้กำหนด จะใช้ Supabase PostgreSQL โดยอัตโนมัติ
+- สำหรับการพัฒนาขั้นสูง: สามารถตั้งค่า PostgreSQL แยกต่างหากเพื่อ performance ที่ดีขึ้น
 
 ## 🚀 การ Deploy
 
@@ -585,4 +663,12 @@ GRADIENT_MODEL_ID=your-model-id
 
 ## 📞 การสนับสนุน
 
-สำหรับคำถามและการสนับสนุน โปรดดูเอกสารการอบรมใน `Day1_Note.md` หรือสร้าง issue ใน repository
+สำหรับคำถามและการสนับสนุน โปรดดูเอกสารการอบรมใน:
+- `Day1_Note.md` - พื้นฐาน Next.js และการตั้งค่าโปรเจ็กต์
+- `Day2_Note.md` - การตั้งค่า Supabase และ Authentication
+- `Day3_Note.md` - การสร้าง Chat Interface และ UI Components
+- `Day4_Note.md` - การรวม LangChain และ AI APIs
+- `Day5_Note.md` - การจัดการ Chat History และ Sessions
+- `Day6_Note.md` - การปรับปรุงประสิทธิภาพและ Advanced Features
+
+หรือสร้าง issue ใน repository
