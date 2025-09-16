@@ -104,13 +104,13 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     return <TableCell>{children}</TableCell>
   },
   ol: function OrderedListComponent({ children }) {
-    return <ol className="list-decimal list-inside space-y-1 my-4">{children}</ol>
+    return <ol className="list-decimal list-outside space-y-1 my-4 ml-6">{children}</ol>
   },
   ul: function UnorderedListComponent({ children }) {
-    return <ul className="list-disc list-inside space-y-1 my-4">{children}</ul>
+    return <ul className="list-disc list-outside space-y-1 my-4 ml-6">{children}</ul>
   },
   li: function ListItemComponent({ children }) {
-    return <li className="ml-4">{children}</li>
+    return <li className="pl-2">{children}</li>
   },
 }
 

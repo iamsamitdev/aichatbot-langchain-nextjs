@@ -19,6 +19,7 @@ export default async function ChatLayout({
   const userInfo = {
     display_name: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || 'User',
     email: data.user.user_metadata?.email || data.user.email || '',
+    userId: data.user.id, // เพิ่ม userId
   }
 
   return (
