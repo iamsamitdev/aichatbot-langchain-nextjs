@@ -77,6 +77,47 @@ interface MessageType {
   parts: Array<{ type: string; text: string }>;                            // เนื้อหาข้อความแบบ parts
 }
 
+// Sample Prompt Interface
+interface SamplePrompt {
+  title: string;
+  prompt: string;
+  icon: string;
+}
+
+// Sample Prompt Data
+const samplePrompts: SamplePrompt[] = [
+    {
+      title: 'สรุปข้อมูลจากบทความ',
+      prompt: 'สามารถช่วยสรุปสาระสำคัญจากบทความที่ฉันให้มาได้ไหม?',
+      icon: '📋'
+    },
+    {
+      title: 'เขียนโค้ดให้ทำงาน',
+      prompt: 'ช่วยเขียนโค้ด Python สำหรับการอ่านไฟล์ CSV และแสดงข้อมูลเป็นกราฟ',
+      icon: '💻'
+    },
+    {
+      title: 'แปลภาษา',
+      prompt: 'ช่วยแปลข้อความนี้จากภาษาไทยเป็นภาษาอังกฤษ',
+      icon: '🌐'
+    },
+    {
+      title: 'วิเคราะห์ข้อมูล',
+      prompt: 'ช่วยวิเคราะห์ข้อมูลการขายของบริษัทในไตรมาสที่ผ่านมา',
+      icon: '📊'
+    },
+    {
+      title: 'เขียนอีเมล์',
+      prompt: 'ช่วยเขียนอีเมล์สำหรับขอนัดหมายประชุมกับลูกค้า',
+      icon: '✉️'
+    },
+    {
+      title: 'แก้ไขข้อผิดพลาด',
+      prompt: 'โค้ดของฉันมีข้อผิดพลาด สามารถช่วยหาและแก้ไขได้ไหม?',
+      icon: '🐛'
+    }
+]
+
 export function NewChat() {
   
   // ============================================================================
@@ -603,7 +644,7 @@ export function NewChat() {
                * 2. Sample Prompts Grid
                * 3. Interactive Buttons สำหรับ quick start
                */
-              <div className="text-center max-w-2xl mx-auto">
+              <div className="text-center max-w-3xl mx-auto">
                 
                 {/* AI Avatar และ Welcome Message */}
                 <div className="mb-8">
@@ -614,79 +655,24 @@ export function NewChat() {
                     Welcome to Genius AI
                   </h1>
                   <p className="text-lg text-slate-600 dark:text-slate-400 mb-8">
-                    Ask me anything, and I&aposll help you with coding,
-                    problem-solving, and creative tasks.
+                    ยินดีต้อนรับสู่ AI Chatbot ที่ขับเคลื่อนด้วย LangChain และ OpenAI
+          ฉันพร้อมช่วยคุณในหลากหลายงาน เริ่มต้นด้วยตัวอย่างด้านล่างหรือพิมพ์คำถามของคุณเลย
                   </p>
                 </div>
 
                 {/* Sample Prompts Grid - ตัวอย่างคำถามสำหรับ quick start */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  
-                  {/* Sample Prompt 1: CSS Grid Layout */}
-                  <button
-                    onClick={() =>
-                      handleSamplePrompt(
-                        "How do I create a responsive layout with CSS Grid?"
-                      )
-                    }
-                    className="p-4 text-left rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="font-medium text-slate-900 dark:text-white mb-1">
-                      CSS Grid Layout
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      Learn how to create responsive layouts
-                    </div>
-                  </button>
-
-                  {/* Sample Prompt 2: React Hooks */}
-                  <button
-                    onClick={() =>
-                      handleSamplePrompt(
-                        "Explain React hooks and when to use them"
-                      )
-                    }
-                    className="p-4 text-left rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="font-medium text-slate-900 dark:text-white mb-1">
-                      React Hooks
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      Understanding hooks and their use cases
-                    </div>
-                  </button>
-
-                  {/* Sample Prompt 3: API Design */}
-                  <button
-                    onClick={() =>
-                      handleSamplePrompt(
-                        "What are the best practices for API design?"
-                      )
-                    }
-                    className="p-4 text-left rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="font-medium text-slate-900 dark:text-white mb-1">
-                      API Design
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      Best practices for building APIs
-                    </div>
-                  </button>
-
-                  {/* Sample Prompt 4: JavaScript Debugging */}
-                  <button
-                    onClick={() =>
-                      handleSamplePrompt("Help me debug this JavaScript error")
-                    }
-                    className="p-4 text-left rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="font-medium text-slate-900 dark:text-white mb-1">
-                      Debug JavaScript
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      Get help with debugging code issues
-                    </div>
-                  </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {samplePrompts.map((sample, index) => (
+                    <button 
+                      key={index}
+                      onClick={() => handleSamplePrompt(sample.prompt)}          // ใส่ prompt เมื่อคลิก
+                      className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg p-4 text-left transition"
+                    >
+                      <div className="text-3xl mb-2">{sample.icon}</div>          {/* ไอคอน */}
+                      <h3 className="font-semibold text-lg mb-1">{sample.title}</h3> {/* ชื่อ prompt */}
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{sample.prompt}</p> {/* คำอธิบาย */}
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : (
