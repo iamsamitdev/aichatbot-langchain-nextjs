@@ -18,7 +18,7 @@
  * - ส่งคืน object ที่มี state และ functions
  * 
  * API Integration:
- * - เชื่อมต่อกับ /api/chat_05_history/session
+ * - เชื่อมต่อกับ /api/chat_06_history_optimistic/session
  * - รองรับ GET, POST, PUT, DELETE methods
  * - จัดการ authentication ด้วย userId
  */
@@ -156,13 +156,13 @@ export function useChatSessions(userId?: string) {
       /**
        * ส่ง GET request ไปยัง session API
        * 
-       * API Endpoint: /api/chat_05_history/session
+       * API Endpoint: /api/chat_06_history_optimistic/session
        * Query Parameter: userId (encoded สำหรับความปลอดภัย)
        * 
        * Expected Response:
        * - sessions: array ของ ChatSession objects
        */
-      const response = await fetch(`/api/chat_05_history/session?userId=${encodeURIComponent(userId)}`)
+      const response = await fetch(`/api/chat_06_history_optimistic/session?userId=${encodeURIComponent(userId)}`)
       
       /**
        * ตรวจสอบ HTTP response status
@@ -273,14 +273,14 @@ export function useChatSessions(userId?: string) {
       /**
        * ส่ง POST request ไปยัง session API
        * 
-       * API Endpoint: /api/chat_05_history/session
+       * API Endpoint: /api/chat_06_history_optimistic/session
        * Method: POST
        * Body: { title, userId }
        * 
        * Expected Response:
        * - session: ChatSession object ที่สร้างใหม่
        */
-      const response = await fetch('/api/chat_05_history/session', {
+      const response = await fetch('/api/chat_06_history_optimistic/session', {
         method: 'POST',                                                     // HTTP POST method
         headers: {
           'Content-Type': 'application/json',                              // กำหนด content type
@@ -397,14 +397,14 @@ export function useChatSessions(userId?: string) {
       /**
        * ส่ง PUT request ไปยัง session API
        * 
-       * API Endpoint: /api/chat_05_history/session
+       * API Endpoint: /api/chat_06_history_optimistic/session
        * Method: PUT
        * Body: { sessionId, title }
        * 
        * Expected Response:
        * - session: ChatSession object ที่อัปเดตแล้ว
        */
-      const response = await fetch('/api/chat_05_history/session', {
+      const response = await fetch('/api/chat_06_history_optimistic/session', {
         method: 'PUT',                                                      // HTTP PUT method
         headers: {
           'Content-Type': 'application/json',                              // กำหนด content type
@@ -487,7 +487,7 @@ export function useChatSessions(userId?: string) {
     setError(null)
     
     try {
-      const response = await fetch(`/api/chat_05_history/session?sessionId=${sessionId}`, {
+      const response = await fetch(`/api/chat_06_history_optimistic/session?sessionId=${sessionId}`, {
         method: 'DELETE',
       })
       

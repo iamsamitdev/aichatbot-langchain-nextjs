@@ -6118,7 +6118,7 @@ ADD COLUMN IF NOT EXISTS summary text NOT NULL DEFAULT '';
 
 #### 2. สร้าง api endpoint ใหม่สำหรับจัดการ chat history optimization
 สร้างไฟล์ `app/api/chat_06_history_optimize/route.ts` และเพิ่มโค้ดดังนี้
-```typescript
+```typescript {.line-numbers}
 /**
  * ===============================================
  * API Route สำหรับ Chat ที่มีการเก็บประวัติและ Optimize
@@ -6576,7 +6576,7 @@ export async function GET(req: NextRequest) {
 
 #### 3. สร้างไฟล์ API Route สำหรับจัดการ Chat Sessions
 สร้างไฟล์ `app/api/chat_06_history_optimize/session/route.ts` และเพิ่มโค้ดดังนี้
-```typescript
+```typescript {.line-numbers}
 /**
  * ===============================================
  * API Route สำหรับจัดการ Chat Sessions

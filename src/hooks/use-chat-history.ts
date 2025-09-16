@@ -143,7 +143,7 @@ export function useChatHistory(initialSessionId?: string, userId?: string) {
 
     try {
       // Step 4: ส่ง request ไปยัง API
-      const response = await fetch('/api/chat_05_history', {
+      const response = await fetch('/api/chat_06_history_optimistic', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ export function useChatHistory(initialSessionId?: string, userId?: string) {
     
     try {
       // Step 2: ส่ง request ไป API สำหรับดึงประวัติ
-      const response = await fetch(`/api/chat_05_history?sessionId=${sessionId}`)
+      const response = await fetch(`/api/chat_06_history_optimistic?sessionId=${sessionId}`)
       
       if (!response.ok) {
         throw new Error('Failed to load chat history')
