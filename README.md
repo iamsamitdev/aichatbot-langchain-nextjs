@@ -21,12 +21,14 @@
 - **Protected Routes**: การป้องกันหน้าที่ต้องเข้าสู่ระบบด้วย middleware
 - **Modular API Design**: API endpoints แบ่งตาม functionality และมี tutorial endpoints
 - **Settings System**: ระบบการตั้งค่าต่างๆ สำหรับผู้ใช้
+- **Tool Calling & Function Calling**: รองรับการเรียกใช้ tools และ functions ขั้นสูง
+- **PostgreSQL Integration**: การรวมกับ PostgreSQL สำหรับ tool calling
 - **Responsive Design**: ใช้งานได้ทั้งเดสก์ท็อปและมือถือ
 
 ## 🛠️ เทคโนโลยีที่ใช้
 
 - **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS, Shadcn/UI
-- **AI/ML**: LangChain, OpenAI API, AI SDK
+- **AI/ML**: LangChain, OpenAI API, AI SDK, Tool Calling, Function Calling
 - **Database & Auth**: Supabase (PostgreSQL, Authentication, Real-time)
 - **Backend**: Next.js API Routes (Edge Runtime)
 - **Styling**: Tailwind CSS, Radix UI Components
@@ -147,6 +149,14 @@ aichatbot-langchain-nextjs/
 │   │   │   │       └── route.ts      # Optimized session endpoints
 │   │   │   ├── chat_06_summary/
 │   │   │   │   └── route.ts          # Step 6.3: Smart message summarization
+│   │   │   ├── chat_07_tool_calling_postgres/
+│   │   │   │   ├── route.ts          # Step 7.1: Tool calling with PostgreSQL
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # Session management with tools
+│   │   │   ├── chat_07_tool_calling_sample/
+│   │   │   │   ├── route.ts          # Step 7.2: Sample tool calling
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # Sample session endpoints
 │   │   │   ├── test/
 │   │   │   │   └── route.ts          # Test API endpoint
 │   │   │   └── route.ts              # Base API routes (GET, POST, PUT, DELETE)
@@ -162,6 +172,7 @@ aichatbot-langchain-nextjs/
 │   │   └── page.tsx                  # Landing/home page
 │   ├── components/
 │   │   ├── ui/
+│   │   │   ├── alert-dialog.tsx      # Alert dialog component (Shadcn/UI)
 │   │   │   ├── avatar.tsx            # Avatar component (Shadcn/UI)
 │   │   │   ├── button.tsx            # Button component (Shadcn/UI)
 │   │   │   ├── card.tsx              # Card component (Shadcn/UI)
@@ -233,7 +244,9 @@ aichatbot-langchain-nextjs/
 ├── Day2_Note.md                      # บันทึกการอบรม Day 2
 ├── Day3_Note.md                      # บันทึกการอบรม Day 3
 ├── Day4_Note.md                      # บันทึกการอบรม Day 4
+├── Day5_Note.md                      # บันทึกการอบรม Day 5
 ├── Day6_Note.md                      # บันทึกการอบรม Day 6
+├── Day7_Note.md                      # บันทึกการอบรม Day 7
 ├── eslint.config.mjs                 # ESLint configuration
 ├── next-env.d.ts                     # Next.js TypeScript declarations
 ├── next.config.ts                    # Next.js configuration
@@ -267,6 +280,8 @@ aichatbot-langchain-nextjs/
 - **`/api/chat_06_history_optimistic/`**: ขั้นตอนที่ 6.1 - ประวัติแชทแบบ optimistic ขั้นสูง
 - **`/api/chat_06_history_optimize/`**: ขั้นตอนที่ 6.2 - การปรับปรุงประสิทธิภาพประวัติ
 - **`/api/chat_06_summary/`**: ขั้นตอนที่ 6.3 - ระบบสรุปข้อความอัจฉริยะ
+- **`/api/chat_07_tool_calling_postgres/`**: ขั้นตอนที่ 7.1 - Tool calling พร้อม PostgreSQL integration
+- **`/api/chat_07_tool_calling_sample/`**: ขั้นตอนที่ 7.2 - ตัวอย่าง Tool calling และ Function calling
 
 #### 🎨 **UI Components**
 - **`/components/ui/`**: 
@@ -425,10 +440,14 @@ npm run lint     # รัน ESLint
 - **POST `/api/chat_06_history_optimistic`**: ระบบประวัติแชทแบบ optimistic ขั้นสูง
 - **POST `/api/chat_06_history_optimize`**: ระบบปรับปรุงประสิทธิภาพและ token management
 - **POST `/api/chat_06_summary`**: ระบบสรุปข้อความอัตโนมัติ
+- **POST `/api/chat_07_tool_calling_postgres`**: Tool calling พร้อม PostgreSQL integration
+- **POST `/api/chat_07_tool_calling_sample`**: ตัวอย่าง Tool calling และ Function calling
 
 ### Session Management Endpoints
 - **POST `/api/chat_06_history_optimistic/session`**: จัดการ session แบบ optimistic
 - **POST `/api/chat_06_history_optimize/session`**: จัดการ session พร้อม optimization
+- **POST `/api/chat_07_tool_calling_postgres/session`**: จัดการ session พร้อม tool calling
+- **POST `/api/chat_07_tool_calling_sample/session`**: จัดการ session สำหรับ sample tools
 
 ### POST /api/chat (Production)
 Endpoint หลักสำหรับจัดการการสนทนากับ AI
@@ -670,5 +689,6 @@ PG_DATABASE=aichatbot_db
 - `Day4_Note.md` - การรวม LangChain และ AI APIs
 - `Day5_Note.md` - การจัดการ Chat History และ Sessions
 - `Day6_Note.md` - การปรับปรุงประสิทธิภาพและ Advanced Features
+- `Day7_Note.md` - Tool Calling, Function Calling และ PostgreSQL Integration
 
 หรือสร้าง issue ใน repository
