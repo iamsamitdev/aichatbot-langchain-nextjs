@@ -21,12 +21,14 @@
 - **Protected Routes**: การป้องกันหน้าที่ต้องเข้าสู่ระบบด้วย middleware
 - **Modular API Design**: API endpoints แบ่งตาม functionality และมี tutorial endpoints
 - **Settings System**: ระบบการตั้งค่าต่างๆ สำหรับผู้ใช้
+- **Tool Calling & Function Calling**: รองรับการเรียกใช้ tools และ functions ขั้นสูง
+- **PostgreSQL Integration**: การรวมกับ PostgreSQL สำหรับ tool calling
 - **Responsive Design**: ใช้งานได้ทั้งเดสก์ท็อปและมือถือ
 
 ## 🛠️ เทคโนโลยีที่ใช้
 
 - **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS, Shadcn/UI
-- **AI/ML**: LangChain, OpenAI API, AI SDK
+- **AI/ML**: LangChain, OpenAI API, AI SDK, Tool Calling, Function Calling
 - **Database & Auth**: Supabase (PostgreSQL, Authentication, Real-time)
 - **Backend**: Next.js API Routes (Edge Runtime)
 - **Styling**: Tailwind CSS, Radix UI Components
@@ -147,6 +149,14 @@ aichatbot-langchain-nextjs/
 │   │   │   │       └── route.ts      # Optimized session endpoints
 │   │   │   ├── chat_06_summary/
 │   │   │   │   └── route.ts          # Step 6.3: Smart message summarization
+│   │   │   ├── chat_07_tool_calling_postgres/
+│   │   │   │   ├── route.ts          # Step 7.1: Tool calling with PostgreSQL
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # Session management with tools
+│   │   │   ├── chat_07_tool_calling_sample/
+│   │   │   │   ├── route.ts          # Step 7.2: Sample tool calling
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # Sample session endpoints
 │   │   │   ├── test/
 │   │   │   │   └── route.ts          # Test API endpoint
 │   │   │   └── route.ts              # Base API routes (GET, POST, PUT, DELETE)
@@ -162,6 +172,7 @@ aichatbot-langchain-nextjs/
 │   │   └── page.tsx                  # Landing/home page
 │   ├── components/
 │   │   ├── ui/
+│   │   │   ├── alert-dialog.tsx      # Alert dialog component (Shadcn/UI)
 │   │   │   ├── avatar.tsx            # Avatar component (Shadcn/UI)
 │   │   │   ├── button.tsx            # Button component (Shadcn/UI)
 │   │   │   ├── card.tsx              # Card component (Shadcn/UI)
@@ -204,6 +215,7 @@ aichatbot-langchain-nextjs/
 │   │   ├── sign-up-form.tsx          # Registration form (Supabase UI)
 │   │   └── update-password-form.tsx  # Update password form (Supabase UI)
 │   ├── constants/
+│   │   ├── api.ts                    # API endpoints constants and URL builders
 │   │   └── models.ts                 # AI model constants and configurations
 │   ├── contexts/
 │   │   └── chat-context.tsx          # Chat context provider for state management
@@ -214,6 +226,7 @@ aichatbot-langchain-nextjs/
 │   ├── lib/
 │   │   ├── client.ts                 # Supabase client configurations
 │   │   ├── custom-chat-transport.ts  # Custom chat transport layer
+│   │   ├── database.ts               # PostgreSQL connection pool utilities
 │   │   ├── middleware.ts             # Authentication middlewares
 │   │   ├── server.ts                 # Server-side Supabase utilities
 │   │   ├── theme-provider.tsx        # Theme provider for dark/light mode
@@ -233,7 +246,9 @@ aichatbot-langchain-nextjs/
 ├── Day2_Note.md                      # บันทึกการอบรม Day 2
 ├── Day3_Note.md                      # บันทึกการอบรม Day 3
 ├── Day4_Note.md                      # บันทึกการอบรม Day 4
+├── Day5_Note.md                      # บันทึกการอบรม Day 5
 ├── Day6_Note.md                      # บันทึกการอบรม Day 6
+├── Day7_Note.md                      # บันทึกการอบรม Day 7
 ├── eslint.config.mjs                 # ESLint configuration
 ├── next-env.d.ts                     # Next.js TypeScript declarations
 ├── next.config.ts                    # Next.js configuration
@@ -267,6 +282,8 @@ aichatbot-langchain-nextjs/
 - **`/api/chat_06_history_optimistic/`**: ขั้นตอนที่ 6.1 - ประวัติแชทแบบ optimistic ขั้นสูง
 - **`/api/chat_06_history_optimize/`**: ขั้นตอนที่ 6.2 - การปรับปรุงประสิทธิภาพประวัติ
 - **`/api/chat_06_summary/`**: ขั้นตอนที่ 6.3 - ระบบสรุปข้อความอัจฉริยะ
+- **`/api/chat_07_tool_calling_postgres/`**: ขั้นตอนที่ 7.1 - Tool calling พร้อม PostgreSQL integration
+- **`/api/chat_07_tool_calling_sample/`**: ขั้นตอนที่ 7.2 - ตัวอย่าง Tool calling และ Function calling
 
 #### 🎨 **UI Components**
 - **`/components/ui/`**: 
@@ -307,6 +324,10 @@ aichatbot-langchain-nextjs/
   - Session switching และ navigation
 
 #### 📦 **Constants & Configuration**
+- **`/constants/api.ts`**: ค่าคงที่และ utilities สำหรับ API endpoints
+  - API base URLs และ endpoints configuration
+  - URL builder functions สำหรับ dynamic parameters
+  - Tool calling API endpoints management
 - **`/constants/models.ts`**: ค่าคงที่และการตั้งค่าสำหรับ AI models
   - Model configurations
   - Provider settings
@@ -314,6 +335,7 @@ aichatbot-langchain-nextjs/
 - **`/lib/`**: 
   - **Supabase**: Client configurations, server utilities
   - **Authentication**: Middleware functions
+  - **Database**: PostgreSQL connection pool และ utilities
   - **Theme Provider**: Dark/light mode management
   - **Chat Transport**: Custom chat transport layer
   - **Utilities**: Tailwind merge, helper functions
@@ -346,7 +368,9 @@ aichatbot-langchain-nextjs/
 ```json
 {
   "@supabase/supabase-js": "Supabase JavaScript client",
-  "@supabase/ssr": "Supabase Server-Side Rendering helpers"
+  "@supabase/ssr": "Supabase Server-Side Rendering helpers",
+  "pg": "PostgreSQL client สำหรับ Node.js",
+  "@types/pg": "TypeScript definitions สำหรับ pg"
 }
 ```
 
@@ -381,9 +405,10 @@ aichatbot-langchain-nextjs/
 ```json
 {
   "@langchain/core": "LangChain core utilities สำหรับ message handling",
+  "@langchain/tools": "LangChain tools สำหรับ function calling",
   "tiktoken": "Token counting และ management สำหรับ AI models",
   "uuid": "การสร้าง unique identifiers สำหรับ sessions",
-  "pg": "PostgreSQL client สำหรับ database operations",
+  "pg": "PostgreSQL client สำหรับ database operations และ tool calling",
   "use-stick-to-bottom": "Auto-scroll utilities สำหรับ chat interface"
 }
 ```
@@ -425,10 +450,14 @@ npm run lint     # รัน ESLint
 - **POST `/api/chat_06_history_optimistic`**: ระบบประวัติแชทแบบ optimistic ขั้นสูง
 - **POST `/api/chat_06_history_optimize`**: ระบบปรับปรุงประสิทธิภาพและ token management
 - **POST `/api/chat_06_summary`**: ระบบสรุปข้อความอัตโนมัติ
+- **POST `/api/chat_07_tool_calling_postgres`**: Tool calling พร้อม PostgreSQL integration
+- **POST `/api/chat_07_tool_calling_sample`**: ตัวอย่าง Tool calling และ Function calling
 
 ### Session Management Endpoints
 - **POST `/api/chat_06_history_optimistic/session`**: จัดการ session แบบ optimistic
 - **POST `/api/chat_06_history_optimize/session`**: จัดการ session พร้อม optimization
+- **POST `/api/chat_07_tool_calling_postgres/session`**: จัดการ session พร้อม tool calling
+- **POST `/api/chat_07_tool_calling_sample/session`**: จัดการ session สำหรับ sample tools
 
 ### POST /api/chat (Production)
 Endpoint หลักสำหรับจัดการการสนทนากับ AI
@@ -559,6 +588,11 @@ Endpoint หลักสำหรับจัดการการสนทน�
 |--------|----------|--------|
 | `NEXT_PUBLIC_SUPABASE_URL` | URL ของ Supabase project | ✅ ใช่ |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Supabase Anon/Public key | ✅ ใช่ |
+| `PG_HOST` | โฮสต์ของ PostgreSQL (ถ้าใช้ RAG + pgvector) | ✅ ใช่ |
+| `PG_PORT` | พอร์ตของ PostgreSQL (default: 6543) | | ไม่ |
+| `PG_USER` | ชื่อผู้ใช้ PostgreSQL | ✅ ใช่ |
+| `PG_PASSWORD` | รหัสผ่าน PostgreSQL | ✅ ใช่ |
+| `PG_DATABASE` | ชื่อฐานข้อมูล PostgreSQL | ไม่ |
 | `OPENAI_API_KEY` | OpenAI API key ของคุณ | ✅ ใช่ |
 | `OPENAI_MODEL_NAME` | ชื่อโมเดล OpenAI ที่ใช้ | ไม่ (default: gpt-4o-mini) |
 | `GOOGLE_API_KEY` | Google AI API key (สำหรับ Gemini) | ไม่ |
@@ -575,17 +609,21 @@ Endpoint หลักสำหรับจัดการการสนทน�
 | `VLLM_MODEL_NAME` | ชื่อโมเดลใน vLLM | ไม่ |
 | `GRADIENT_ACCESS_TOKEN` | Gradient AI access token | ไม่ |
 | `GRADIENT_WORKSPACE_ID` | Gradient AI workspace ID | ไม่ |
-| `PG_HOST` | PostgreSQL host address | ไม่ (สำหรับ local PostgreSQL) |
-| `PG_PORT` | PostgreSQL port number | ไม่ (default: 5432) |
-| `PG_USER` | PostgreSQL username | ไม่ (สำหรับ local PostgreSQL) |
-| `PG_PASSWORD` | PostgreSQL password | ไม่ (สำหรับ local PostgreSQL) |
-| `PG_DATABASE` | PostgreSQL database name | ไม่ (สำหรับ local PostgreSQL) |
+| `GRADIENT_MODEL_ID` | Gradient AI model ID | ไม่ |
 
 ### ตัวอย่างไฟล์ .env
 ```env
 # === Supabase config (จำเป็น) =====
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-anon-key
+
+# ===  postgres config =====
+# การใช้กับ RAG + LangChain + pgvector แนะนำเป็นแบบ Transaction pooler (Shared Pooler)
+PG_HOST=your-postgres-host
+PG_PORT=6543
+PG_USER=your-postgres-user
+PG_PASSWORD=your-postgres-password
+PG_DATABASE=postgres
 
 # === OPENAI (ChatGPT) - จำเป็น =====
 OPENAI_API_KEY=sk-your-openai-api-key
@@ -670,5 +708,6 @@ PG_DATABASE=aichatbot_db
 - `Day4_Note.md` - การรวม LangChain และ AI APIs
 - `Day5_Note.md` - การจัดการ Chat History และ Sessions
 - `Day6_Note.md` - การปรับปรุงประสิทธิภาพและ Advanced Features
+- `Day7_Note.md` - Tool Calling, Function Calling และ PostgreSQL Integration
 
 หรือสร้าง issue ใน repository
