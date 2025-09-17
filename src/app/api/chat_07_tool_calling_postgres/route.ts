@@ -1,17 +1,21 @@
 /**
  * ===============================================
- * API Route สำหรับ Chat ที่มีการเก็บประวัติและ Optimize
+ * API Route สำหรับ Chat (Agent with Tools Version)
  * ===============================================
- * 
+ *
  * ฟีเจอร์หลัก:
+ * - Agent with Tool Calling (Supabase)
  * - เก็บประวัติการสนทนาใน PostgreSQL
  * - ทำ Summary เพื่อประหยัด Token
  * - Trim Messages เพื่อไม่ให้เกิน Token Limit
  * - Streaming Response สำหรับ Real-time Chat
  * - จัดการ Session ID อัตโนมัติ
- */
+*/
 
 import { NextRequest } from 'next/server'
+import { getDatabase } from '@/lib/database'
+
+// LangChain & AI SDK Imports
 import { ChatOpenAI } from '@langchain/openai'
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
 import { toUIMessageStream } from '@ai-sdk/langchain'
@@ -21,7 +25,12 @@ import { BaseMessage, AIMessage, HumanMessage, SystemMessage, MessageContent } f
 import { trimMessages } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { encodingForModel } from '@langchain/core/utils/tiktoken'
-import { getDatabase } from '@/lib/database'
+
+// ✨ NEW: Imports for Agent and Tools
+import { z } from 'zod'
+import { createClient } from '@supabase/supabase-js'
+import { DynamicStructuredTool } from '@langchain/core/tools'
+import { AgentExecutor, createOpenAIToolsAgent } from 'langchain/agents'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -30,6 +39,168 @@ export const maxDuration = 30
 // ใช้ centralized database utility
 // ===============================================
 const pool = getDatabase()
+
+// ✨ NEW: Supabase Client (สำหรับ Tools)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!
+)
+
+// ===============================================
+// ✨ NEW: สร้าง Tools สำหรับคุยกับ Supabase
+// ===============================================
+
+// สร้าง Tool สำหรับค้นหาข้อมูลสินค้า
+const getProductInfoTool = new DynamicStructuredTool({
+    name: "get_product_info",
+    description: "ค้นหาข้อมูลสินค้าจากฐานข้อมูล รวมถึงราคาและจำนวนคงคลัง (stock) โดยรับชื่อสินค้าเป็น input",
+    schema: z.object({
+      productName: z.string().describe("ชื่อของสินค้าที่ต้องการค้นหา เช่น 'Running Shoes', 'Earbuds', 'Keyboard' เป็นต้น"),
+    }),
+    func: async ({ productName }) => {
+      console.log(`🔧 TOOL CALLED: get_product_info with productName="${productName}"`);
+      try {
+        // ตรวจสอบการเชื่อมต่อฐานข้อมูล
+        const { data, error } = await supabase
+          .from("products")
+          .select("name, price, stock, description")
+          .ilike("name", `%${productName}%`)
+          .limit(10); // จำกัดผลลัพธ์ไม่เกิน 10 รายการ
+          // .single(); // .single() จะคืนค่า object เดียว หรือ error ถ้าเจอหลายรายการ/ไม่เจอ
+        
+        if (error) {
+          console.log('❌ Supabase error:', error.message);
+          // ตรวจสอบว่าเป็น connection error หรือไม่
+          if (error.message.includes('connection') || error.message.includes('network') || error.message.includes('timeout')) {
+            throw new Error('DATABASE_CONNECTION_ERROR');
+          }
+          throw new Error(error.message);
+        }
+        
+        if (!data || data.length === 0) {
+          console.log(`❌ ไม่พบสินค้าที่ชื่อ '${productName}'`);
+          return `ไม่พบสินค้าที่ชื่อ '${productName}' ในฐานข้อมูล`;
+        }
+        
+        console.log('✅ พบข้อมูลสินค้า:', data);
+        
+        // หากพบหลายสินค้า ให้แสดงรายการทั้งหมด
+        if (data.length === 1) {
+          const product = data[0];
+          return `ข้อมูลสินค้า "${product.name}":
+- ราคา: ${product.price} บาท
+- จำนวนในสต็อก: ${product.stock} ชิ้น
+- รายละเอียด: ${product.description}`;
+        } else {
+          // แสดงรายการสินค้าทั้งหมดที่พบในรูปแบบตาราง Markdown
+          const tableHeader = `| ชื่อสินค้า | ราคา (บาท) | สต็อก (ชิ้น) | รายละเอียด |
+|----------|------------|-------------|------------|`;
+          
+          const tableRows = data.map(product => 
+            `| ${product.name} | ${product.price.toLocaleString()} | ${product.stock} | ${product.description} |`
+          ).join('\n');
+          
+          return `พบสินค้าที่ตรงกับคำค้นหา "${productName}" ทั้งหมด ${data.length} รายการ:
+
+${tableHeader}
+${tableRows}`;
+        }
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.log('❌ Tool error:', errorMessage);
+        
+        // ตรวจสอบว่าเป็น database connection error หรือไม่
+        if (errorMessage === 'DATABASE_CONNECTION_ERROR' || 
+            errorMessage.includes('connection') || 
+            errorMessage.includes('network') || 
+            errorMessage.includes('timeout')) {
+          throw new Error('DATABASE_CONNECTION_ERROR');
+        }
+        
+        return `เกิดข้อผิดพลาดในการดึงข้อมูลสินค้า: ${errorMessage}`;
+      }
+    },
+})
+
+// สร้าง Tool สำหรับดูข้อมูลการขาย
+const getSalesDataTool = new DynamicStructuredTool({
+    name: "get_sales_data",
+    description: "ใช้ tool นี้เพื่อดูประวัติการขายของสินค้า. รับ input เป็นชื่อสินค้า.",
+    schema: z.object({
+      productName: z.string().describe("ชื่อของสินค้าที่ต้องการดูข้อมูลการขาย"),
+    }),
+    func: async ({ productName }) => {
+      console.log(`TOOL CALLED: get_sales_data with productName=${productName}`);
+      try {
+        // ขั้นตอนที่ 1: ค้นหา product_id จากชื่อสินค้า
+        const { data: product, error: productError } = await supabase
+          .from("products").select("id").ilike("name", `%${productName}%`).single();
+        if (productError) {
+          // ตรวจสอบว่าเป็น connection error หรือไม่
+          if (productError.message.includes('connection') || productError.message.includes('network') || productError.message.includes('timeout')) {
+            throw new Error('DATABASE_CONNECTION_ERROR');
+          }
+          throw new Error(productError.message);
+        }
+        if (!product) return `ไม่พบสินค้าที่ชื่อ '${productName}'`;
+        
+        // ขั้นตอนที่ 2: ดึงข้อมูลการขายจาก sales table โดยใช้ product_id
+        const { data: sales, error: salesError } = await supabase
+          .from("sales").select("sale_date, quantity_sold, total_price").eq("product_id", product.id);
+        if (salesError) {
+          // ตรวจสอบว่าเป็น connection error หรือไม่
+          if (salesError.message.includes('connection') || salesError.message.includes('network') || salesError.message.includes('timeout')) {
+            throw new Error('DATABASE_CONNECTION_ERROR');
+          }
+          throw new Error(salesError.message);
+        }
+        if (!sales || sales.length === 0) return `ยังไม่มีข้อมูลการขายสำหรับสินค้า '${productName}'`;
+        
+        // หากมีรายการเดียว แสดงแบบง่าย
+        if (sales.length === 1) {
+          const sale = sales[0];
+          return `ประวัติการขายของสินค้า "${productName}":
+                  - วันที่ขาย: ${new Date(sale.sale_date).toLocaleDateString('th-TH')}
+                  - จำนวนที่ขาย: ${sale.quantity_sold} ชิ้น
+                  - ยอดขาย: ${sale.total_price.toLocaleString()} บาท`;
+        } else {
+          // หากมีหลายรายการ แสดงเป็นตาราง Markdown
+          const tableHeader = `| วันที่ขาย | จำนวนที่ขาย (ชิ้น) | ยอดขาย (บาท) |
+|-----------|-------------------|---------------|`;
+          
+          const tableRows = sales.map(sale => 
+            `| ${new Date(sale.sale_date).toLocaleDateString('th-TH')} | ${sale.quantity_sold} | ${sale.total_price.toLocaleString()} |`
+          ).join('\n');
+          
+          const totalQuantity = sales.reduce((sum, sale) => sum + sale.quantity_sold, 0);
+          const totalSales = sales.reduce((sum, sale) => sum + parseFloat(sale.total_price), 0);
+          
+          return `ประวัติการขายของสินค้า "${productName}" ทั้งหมด ${sales.length} รายการ:
+
+${tableHeader}
+${tableRows}
+
+**สรุป:**
+- ขายรวม: ${totalQuantity} ชิ้น
+- ยอดขายรวม: ${totalSales.toLocaleString()} บาท`;
+        }
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        
+        // ตรวจสอบว่าเป็น database connection error หรือไม่
+        if (errorMessage === 'DATABASE_CONNECTION_ERROR' || 
+            errorMessage.includes('connection') || 
+            errorMessage.includes('network') || 
+            errorMessage.includes('timeout')) {
+          throw new Error('DATABASE_CONNECTION_ERROR');
+        }
+        
+        return `เกิดข้อผิดพลาดในการดึงข้อมูลการขาย: ${errorMessage}`;
+      }
+    },
+})
+
+const tools = [getProductInfoTool, getSalesDataTool];
 
 // ===============================================
 // ฟังก์ชันสำหรับนับ Token (Tiktoken)
@@ -179,8 +350,8 @@ export async function POST(req: NextRequest) {
     // Step 4: ตั้งค่า AI Model (OpenAI GPT-4o-mini)
     // ===============================================
     const model = new ChatOpenAI({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      temperature: 0.7,
+      model: process.env.OPENAI_API_MODEL ?? 'gpt-4o-mini',
+      temperature: 0.1, // ลด temperature ให้ต่ำมากเพื่อให้ติดตาม instruction เข้มงวด
       maxTokens: 1000,
       streaming: true
     })
@@ -220,7 +391,7 @@ export async function POST(req: NextRequest) {
     if (sessionId && fullHistory.length > 0) {
       // มี session เดิม - ทำ trim messages เพื่อประหยัด token
       const trimmedWindow = await trimMessages(fullHistory, {
-        maxTokens: 1500, // กำหนด limit ของ token สำหรับ history
+        maxTokens: 1500,
         strategy: 'last',
         tokenCounter: tiktokenCounter
       })
@@ -261,52 +432,114 @@ export async function POST(req: NextRequest) {
     const summaryForThisTurn = [persistedSummary, overflowSummary].filter(Boolean).join('\n')
 
     // ===============================================
-    // Step 8: สร้าง Prompt Template และ Chain
+    // 🔄 MODIFIED Step 8: สร้าง Agent แทน Chain เดิม
     // ===============================================
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', 'คุณคือผู้ช่วยที่ตอบชัดเจน และตอบเป็นภาษาไทยเมื่อผู้ใช้ถามเป็นไทย'],
-      ['system', `สรุปย่อบริบทก่อนหน้า (สั้นที่สุด): {summary}`],
-      new MessagesPlaceholder('recent_window'),
-      ['human', '{input}']
+    const agentPrompt = ChatPromptTemplate.fromMessages([
+      ['system', `คุณคือผู้ช่วย AI อัจฉริยะที่ตอบเป็นภาษาไทย 
+      
+      คุณมี tools ที่สามารถใช้ค้นหาข้อมูลสินค้าและการขายได้ ได้แก่:
+      1. get_product_info - สำหรับค้นหาข้อมูลสินค้า ราคา และจำนวนในสต็อก
+      2. get_sales_data - สำหรับดูประวัติการขาย
+      
+      เมื่อผู้ใช้ถามเกี่ยวกับสินค้าใดๆ ให้ใช้ tool get_product_info เพื่อค้นหาข้อมูลจากฐานข้อมูลก่อนตอบ
+      ห้ามเดาหรือสร้างข้อมูลขึ้นมาเอง ให้ใช้ข้อมูลจาก tool เท่านั้น
+      
+      สำหรับการค้นหาสินค้า:
+      - หากผู้ใช้ใช้คำที่อาจมีความหมายคล้าย ให้ลองค้นหาด้วยคำที่เกี่ยวข้อง
+      - เช่น "เมาส์" ลองค้นหาด้วย "mouse", "gaming mouse", "เมาส์เกม"
+      - เช่น "แมคบุ๊ค" ลองค้นหาด้วย "MacBook", "Mac"
+      - เช่น "กาแฟ" ลองค้นหาด้วย "coffee", "espresso"
+      
+      หากเกิด DATABASE_CONNECTION_ERROR ให้ตอบว่า "ขออภัยครับ ขณะนี้ไม่สามารถเข้าถึงฐานข้อมูลได้ กรุณาลองใหม่อีกครั้งในภายหลัง"
+      
+      บริบทการสนทนาก่อนหน้านี้โดยสรุปคือ: {summary}`],
+      new MessagesPlaceholder('chat_history'), // ประวัติการสนทนาก่อนหน้านี้
+      ['human', '{input}'],
+      new MessagesPlaceholder('agent_scratchpad'), // พื้นที่ให้ Agent จดบันทึกการใช้ tool
     ])
 
-    const chain = prompt.pipe(model).pipe(new StringOutputParser())
+    // สร้าง Agent โดยใช้ Tools ที่เตรียมไว้
+    const agent = await createOpenAIToolsAgent({
+      llm: model,
+      tools,
+      prompt: agentPrompt,
+    })
+
+    const agentExecutor = new AgentExecutor({
+      agent,
+      tools,
+      verbose: false, // true เปิด verbose mode เพื่อดู debug logs
+      maxIterations: 5, // จำกัดจำนวนรอบการทำงาน
+      returnIntermediateSteps: false, // ไม่ต้องแสดงขั้นตอนกลาง
+    })
 
     // ===============================================
-    // Step 9: สร้าง Stream สำหรับ Real-time Response
+    // 🔄 MODIFIED Step 9: สร้าง Stream จาก Agent
     // ===============================================
-    const stream = await chain.stream(
-      { input, summary: summaryForThisTurn, recent_window: recentWindowWithoutCurrentInput }
-    )
+    // รวม summary เข้าไปเป็น system message เพื่อให้ agent รับรู้บริบท
+    const chatHistoryForAgent = [...recentWindowWithoutCurrentInput];
+    if (summaryForThisTurn) {
+        // หากมี summary ให้ใส่ไว้เป็นข้อความแรกสุดเพื่อให้ agent เห็นเป็นบริบทสำคัญ
+        chatHistoryForAgent.unshift(new SystemMessage(summaryForThisTurn));
+    }
+
+    // สร้าง Stream จาก Agent
+    const stream = await agentExecutor.stream({
+        input: input,
+        chat_history: chatHistoryForAgent,
+        summary: summaryForThisTurn // เพิ่ม summary เข้าไปใน prompt
+    });
 
     // ===============================================
-    // Step 10: บันทึกข้อความของ User ลงฐานข้อมูล
+    // Step 10: บันทึกข้อความของ User ลงฐานข้อมูล (เฉพาะเมื่อเชื่อมต่อได้)
     // ===============================================
-    await messageHistory.addUserMessage(input)
+    let canSaveToDatabase = true
+    try {
+      await messageHistory.addUserMessage(input)
+    } catch (e) {
+      console.warn('⚠️ ไม่สามารถบันทึกข้อความ user ลงฐานข้อมูลได้:', e instanceof Error ? e.message : String(e))
+      canSaveToDatabase = false
+    }
     
     // ===============================================
-    // Step 11: สร้าง Readable Stream สำหรับ UI
+    // 🔄 MODIFIED Step 11: จัดการ Stream จาก Agent และบันทึกผลลัพธ์
     // ===============================================
     let assistantText = ''
+    let hasDatabaseError = false // ตัวแปรเช็คว่ามี database error หรือไม่
+    
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          // อ่าน stream chunks และส่งไปยัง UI
           for await (const chunk of stream) {
-            assistantText += chunk
-            controller.enqueue(chunk)
+            // Agent stream จะส่ง object ที่มี key ต่างๆ ออกมา
+            // เราสนใจเฉพาะ key 'output' ซึ่งเป็นคำตอบสุดท้าย
+            if (chunk.output) {
+              assistantText += chunk.output;
+              
+              // ตรวจสอบว่ามี database connection error หรือไม่
+              if (chunk.output.includes('ไม่สามารถเข้าถึงฐานข้อมูลได้') || 
+                  assistantText.includes('DATABASE_CONNECTION_ERROR')) {
+                hasDatabaseError = true;
+                // แทนที่ error message ด้วยข้อความที่เป็นมิตร
+                const friendlyMessage = 'ขออภัยครับ ขณะนี้ไม่สามารถเข้าถึงฐานข้อมูลได้ กรุณาลองใหม่อีกครั้งในภายหลัง';
+                controller.enqueue(friendlyMessage);
+                assistantText = friendlyMessage;
+              } else {
+                controller.enqueue(chunk.output);
+              }
+            }
           }
           
           // ===============================================
-          // Step 12: บันทึกคำตอบของ AI ลงฐานข้อมูล
+          // Step 12: บันทึกคำตอบของ AI ลงฐานข้อมูล (เฉพาะเมื่อไม่มี database error และเชื่อมต่อได้)
           // ===============================================
-          if (assistantText) {
-            await messageHistory.addMessage(new AIMessage(assistantText))
-            
-            // ===============================================
-            // Step 13: อัปเดต Summary ถาวรในฐานข้อมูล
-            // ===============================================
+          if (assistantText && !hasDatabaseError && canSaveToDatabase) {
             try {
+              await messageHistory.addMessage(new AIMessage(assistantText))
+              
+              // ===============================================
+              // Step 13: อัปเดต Summary ถาวรในฐานข้อมูล
+              // ===============================================
               const summarizerPrompt2 = ChatPromptTemplate.fromMessages([
                 ['system', 'รวมสาระสำคัญให้สั้นที่สุด ภาษาไทย กระชับ'],
                 ['human', 'นี่คือสรุปเดิม:\n{old}\n\nนี่คือข้อความใหม่:\n{delta}\n\nช่วยอัปเดตให้สั้นและครบถ้วน']
@@ -328,6 +561,8 @@ export async function POST(req: NextRequest) {
             } catch (e) {
               console.warn('update summary failed', e)
             }
+          } else if (hasDatabaseError || !canSaveToDatabase) {
+            console.warn('🚫 ข้ามการบันทึกประวัติเนื่องจากมีปัญหาการเชื่อมต่อฐานข้อมูล')
           }
           
           controller.close()

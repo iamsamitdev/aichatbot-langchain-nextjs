@@ -44,12 +44,34 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     }
   }
 
+  const handleFillDemo = () => {
+    setEmail('samit@email.com')
+    setPassword('123456')
+  }
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>Enter your email below to login to your account</CardDescription>
+          <div className="mt-2 px-4 bg-yellow-300 p-2 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-800">Email: samit@email.com</p>
+                <p className="text-sm text-gray-800">Password: 123456</p>
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={handleFillDemo}
+                className="ml-2 bg-white hover:bg-gray-50"
+              >
+                Auto Fill
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
@@ -63,6 +85,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  tabIndex={1}
                 />
               </div>
               <div className="grid gap-2">
@@ -71,6 +94,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                   <Link
                     href="/auth/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    tabIndex={4}
                   >
                     Forgot your password?
                   </Link>
@@ -79,12 +103,13 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                   id="password"
                   type="password"
                   required
-                  value={password}
+                  value={password}  
                   onChange={(e) => setPassword(e.target.value)}
+                  tabIndex={2}
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading} tabIndex={3}>
                 {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </div>

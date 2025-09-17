@@ -7,6 +7,7 @@ import { DefaultChatTransport } from 'ai'
 import { LogoutButton } from '@/components/logout-button'
 import { createClient } from '@/lib/client'
 import { User } from '@supabase/supabase-js'
+import { API_BASE } from "@/constants/api"
 
 export default function NewChatSimple() {
 
@@ -17,7 +18,7 @@ export default function NewChatSimple() {
   // ใช้ useChat hook เพื่อจัดการสถานะการสนทนา
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
-      api: '/api/chat_04_stream',
+      api: API_BASE,
     })
   })
 
