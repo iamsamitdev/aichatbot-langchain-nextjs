@@ -67,7 +67,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 variant="outline" 
                 size="sm"
                 onClick={handleFillDemo}
-                className="ml-2 bg-white hover:bg-gray-50"
+                className="ml-2 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700"
               >
                 Auto Fill
               </Button>

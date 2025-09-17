@@ -95,6 +95,11 @@ export function useChatHistory(initialSessionId?: string, userId?: string) {
    */
   const [input, setInput] = useState('')
 
+  /**
+   * AbortController สำหรับยกเลิกการส่งข้อความ
+   */
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+
   // ===============================================
   // Main Functions - ฟังก์ชันหลักของ Hook
   // ===============================================
@@ -121,6 +126,10 @@ export function useChatHistory(initialSessionId?: string, userId?: string) {
     // เริ่มสถานะ loading และเคลียร์ error
     setLoading(true)
     setHistoryError(null)
+
+    // สร้าง AbortController สำหรับยกเลิกการส่ง
+    const controller = new AbortController()
+    setAbortController(controller)
 
     // Step 2: สร้างข้อความของผู้ใช้พร้อม temporary ID
     const userMessage: ChatMessage = {
@@ -154,6 +163,7 @@ export function useChatHistory(initialSessionId?: string, userId?: string) {
           sessionId: currentSessionId,          // Session ID ปัจจุบัน
           userId: userId,                       // ID ของผู้ใช้จาก auth system
         }),
+        signal: controller.signal,              // เพิ่ม AbortSignal
       })
 
       if (!response.ok) {
@@ -223,13 +233,29 @@ export function useChatHistory(initialSessionId?: string, userId?: string) {
       }
     } catch (error) {
       // Step 8: จัดการ error
-      setHistoryError(error instanceof Error ? error.message : 'Unknown error')
-      console.error('Send message error:', error)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request was aborted')
+      } else {
+        setHistoryError(error instanceof Error ? error.message : 'Unknown error')
+        console.error('Send message error:', error)
+      }
     } finally {
-      // Step 9: จบกระบวนการ - ปิด loading
+      // Step 9: จบกระบวนการ - ปิด loading และเคลียร์ controller
       setLoading(false)
+      setAbortController(null)
     }
   }, [messages, currentSessionId, loading]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * ฟังก์ชันหยุดการส่งข้อความ
+   */
+  const stopMessage = useCallback(() => {
+    if (abortController) {
+      abortController.abort()
+      setAbortController(null)
+      setLoading(false)
+    }
+  }, [abortController])
 
   // ===============================================
   // History Management Functions - ฟังก์ชันจัดการประวัติ
@@ -367,6 +393,7 @@ export function useChatHistory(initialSessionId?: string, userId?: string) {
     // Actions - การกระทำต่างๆ
     // ===============================================
     sendMessage,        // ฟังก์ชันส่งข้อความ (รับ string parameter)
+    stopMessage,        // ฟังก์ชันหยุดการส่งข้อความ
     handleSubmit,       // ฟังก์ชันจัดการ form submission
     
     // ===============================================

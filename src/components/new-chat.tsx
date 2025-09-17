@@ -46,15 +46,13 @@ import { ModelSelector } from "@/components/model-selector"                 // D
 import { cn } from "@/lib/utils"                                            // Utility สำหรับจัดการ CSS classes
 import {
   ArrowUp,
+  Check,
   Copy,
   Globe,
   Mic,
   MoreHorizontal,
-  Pencil,
   Plus,
-  ThumbsDown,
-  ThumbsUp,
-  Trash,
+  Square,
 } from "lucide-react"                                                        // Icons จาก Lucide React
 import { useRef, useState, useEffect } from "react"                          // React Hooks
 import { useChatContext } from "@/contexts/chat-context"                     // Context สำหรับจัดการสถานะ chat
@@ -147,6 +145,12 @@ export function NewChat() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)                      // Textarea สำหรับพิมพ์ข้อความ
   
   /**
+   * State สำหรับติดตาม copy status ของแต่ละข้อความ
+   * key: message id, value: boolean (true = เพิ่งกด copy)
+   */
+  const [copiedMessages, setCopiedMessages] = useState<Record<string, boolean>>({})
+  
+  /**
    * ID ของผู้ใช้ที่ล็อกอินอยู่ในปัจจุบัน
    * ใช้สำหรับการระบุตัวตนและบันทึกข้อมูล
    */
@@ -228,7 +232,7 @@ export function NewChat() {
   // ============================================================================
   // STEP 3: CHAT HOOK INITIALIZATION - การตั้งค่า useChat Hook
   // ============================================================================
-  const { messages, sendMessage, status, setMessages } = useChat({
+  const { messages, sendMessage, status, setMessages, stop } = useChat({
 
     transport: createCustomChatTransport({
       api: API_BASE,                                                        // API endpoint สำหรับส่งข้อความ
@@ -342,6 +346,28 @@ export function NewChat() {
 
   const handleSamplePrompt = (samplePrompt: string) => {
     setPrompt(samplePrompt)                                                  // ตั้งค่าข้อความใน input
+  }
+
+  const handleStop = () => {
+    stop()                                                                   // หยุดการส่งข้อความ
+  }
+
+  const handleCopyMessage = async (content: string, messageId: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      
+      // แสดง check icon
+      setCopiedMessages(prev => ({ ...prev, [messageId]: true }))
+      
+      // กลับไปเป็น copy icon หลังจาก 2 วินาที
+      setTimeout(() => {
+        setCopiedMessages(prev => ({ ...prev, [messageId]: false }))
+      }, 2000)
+      
+      console.log('Message copied to clipboard')
+    } catch (error) {
+      console.error('Failed to copy message:', error)
+    }
   }
 
   // ============================================================================
@@ -481,6 +507,11 @@ export function NewChat() {
                 })().map((message, index) => {
                   const isAssistant = message.role === "assistant"
                   
+                  // คำนวณ content สำหรับใช้ใน copy function
+                  const messageContent = typeof message === 'object' && 'parts' in message && message.parts
+                    ? message.parts.map((part) => 'text' in part ? part.text : '').join('')
+                    : String(message)
+                  
                   return (
                     <Message
                       key={`${message.id}-${index}`}
@@ -490,13 +521,9 @@ export function NewChat() {
                       <MessageContent
                         isAssistant={isAssistant}
                         bubbleStyle={true}
-                        markdown // แสดงเป็น markdown format
+                        markdown={isAssistant} // แสดง markdown เฉพาะ assistant เท่านั้น
                       >
-                        {typeof message === 'object' && 'parts' in message && message.parts
-                          ? message.parts.map((part) => 
-                              'text' in part ? part.text : ''
-                            ).join('')
-                          : String(message)}
+                        {messageContent}
                       </MessageContent>
                       
                       <MessageActions
@@ -508,56 +535,15 @@ export function NewChat() {
                             variant="ghost"
                             size="sm"
                             className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
+                            onClick={() => handleCopyMessage(messageContent, message.id)}
                           >
-                            <Copy size={14} />
+                            {copiedMessages[message.id] ? (
+                              <Check size={14} className="text-green-600" />
+                            ) : (
+                              <Copy size={14} />
+                            )}
                           </Button>
                         </MessageAction>
-                        
-                        {isAssistant && (
-                          <>
-                            <MessageAction tooltip="Upvote" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <ThumbsUp size={14} />
-                              </Button>
-                            </MessageAction>
-                            <MessageAction tooltip="Downvote" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <ThumbsDown size={14} />
-                              </Button>
-                            </MessageAction>
-                          </>
-                        )}
-                        
-                        {!isAssistant && (
-                          <>
-                            <MessageAction tooltip="Edit" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <Pencil size={14} />
-                              </Button>
-                            </MessageAction>
-                            <MessageAction tooltip="Delete" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <Trash size={14} />
-                              </Button>
-                            </MessageAction>
-                          </>
-                        )}
                       </MessageActions>
                     </Message>
                   )
@@ -583,7 +569,7 @@ export function NewChat() {
       {/* INPUT SECTION - ส่วนรับ input จากผู้ใช้ */}
       {/* ============================================================================ */}
       
-      <div className="bg-background z-10 shrink-0 px-3 pb-3 md:px-5 md:pb-5">
+      <div className="bg-background z-[5] shrink-0 px-3 pb-3 md:px-5 md:pb-5">
         <div className="mx-auto max-w-3xl">
           
           {/* ============================================================================ */}
@@ -676,19 +662,28 @@ export function NewChat() {
                     </Button>
                   </PromptInputAction>
 
-                  {/* Send Button - ปุ่มส่งข้อความ */}
+                  {/* Send/Stop Button - ปุ่มส่งข้อความหรือหยุด */}
                   <Button
                     size="icon"
-                    disabled={!prompt.trim() || status !== 'ready' || !userId}
-                    onClick={handleSubmit}
+                    disabled={
+                      (status === 'ready' && (!prompt.trim() || !userId)) ||
+                      (status !== 'ready' && status !== 'streaming' && status !== 'submitted')
+                    }
+                    onClick={
+                      status === 'ready' ? handleSubmit : handleStop
+                    }
                     className="size-9 rounded-full"
+                    variant={status === 'ready' ? 'default' : 'destructive'}
                   >
                     {/* แสดง icon ตาม status */}
                     {status === 'ready' ? (
                       /* แสดงลูกศรเมื่อพร้อม */
                       <ArrowUp size={18} />
+                    ) : status === 'streaming' || status === 'submitted' ? (
+                      /* แสดงปุ่ม stop เมื่อกำลังส่ง */
+                      <Square size={18} fill="currentColor" />
                     ) : (
-                      /* แสดง loading indicator */
+                      /* แสดง loading indicator สำหรับ status อื่นๆ */
                       <span className="size-3 rounded-xs bg-white" />
                     )}
                   </Button>

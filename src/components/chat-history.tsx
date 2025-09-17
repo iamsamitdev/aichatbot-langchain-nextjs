@@ -50,15 +50,13 @@ import { ModelSelector } from "@/components/model-selector"                 // D
 import { useChatHistory } from "@/hooks/use-chat-history"                   // Custom hook สำหรับจัดการประวัติ chat
 import {
   ArrowUp,
+  Check,
   Copy,
   Globe,
   Mic,
   MoreHorizontal,
-  Pencil,
   Plus,
-  ThumbsDown,
-  ThumbsUp,
-  Trash,
+  Square,
 } from "lucide-react"                                                        // Icons จาก Lucide React
 import { DEFAULT_MODEL } from "@/constants/models"                           // โมเดล AI เริ่มต้น
 
@@ -109,6 +107,12 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
 
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)               // โมเดล AI ที่เลือก (ค่าเริ่มต้นจาก constants)
   
+  /**
+   * State สำหรับติดตาม copy status ของแต่ละข้อความ
+   * key: message id, value: boolean (true = เพิ่งกด copy)
+   */
+  const [copiedMessages, setCopiedMessages] = useState<Record<string, boolean>>({})
+  
   // ============================================================================
   // STEP 1: REF AND HOOK DECLARATIONS - การประกาศ Refs และ Hooks
   // ============================================================================
@@ -138,6 +142,7 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
     input,                                                                   // ข้อความที่ผู้ใช้พิมพ์ปัจจุบัน
     setInput,                                                                // ฟังก์ชันสำหรับตั้งค่า input
     sendMessage,                                                             // ฟังก์ชันสำหรับส่งข้อความ
+    stopMessage,                                                             // ฟังก์ชันสำหรับหยุดการส่งข้อความ
     loadChatHistory,                                                         // ฟังก์ชันสำหรับโหลดประวัติ
     loadingHistory,                                                          // สถานะการโหลดประวัติ
     historyError,                                                            // ข้อผิดพลาดในการโหลดประวัติ
@@ -172,6 +177,24 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
   // STEP 3: EVENT HANDLER FUNCTIONS - ฟังก์ชันจัดการ Events
   // ============================================================================
 
+  const handleCopyMessage = async (content: string, messageId: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      
+      // แสดง check icon
+      setCopiedMessages(prev => ({ ...prev, [messageId]: true }))
+      
+      // กลับไปเป็น copy icon หลังจาก 2 วินาที
+      setTimeout(() => {
+        setCopiedMessages(prev => ({ ...prev, [messageId]: false }))
+      }, 2000)
+      
+      console.log('Message copied to clipboard')
+    } catch (error) {
+      console.error('Failed to copy message:', error)
+    }
+  }
+
   /**
    * ฟังก์ชันสำหรับจัดการการส่งข้อความ
    * 
@@ -196,6 +219,10 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
     
     // ส่งข้อความผ่าน hook
     sendMessage(input)                                                       // ฟังก์ชันจาก useChatHistory hook
+  }
+
+  const handleStop = () => {
+    stopMessage()                                                            // หยุดการส่งข้อความ
   }
 
   // ============================================================================
@@ -368,7 +395,7 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
                       <MessageContent
                         isAssistant={isAssistant}
                         bubbleStyle={true}
-                        markdown                                             // แสดงเป็น markdown format
+                        markdown={isAssistant}                               // แสดง markdown เฉพาะ assistant เท่านั้น
                       >
                         {/* เนื้อหาข้อความจาก database */}
                         {message.content}                                    
@@ -386,64 +413,16 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
                             variant="ghost"
                             size="sm"
                             className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
+                            onClick={() => handleCopyMessage(message.content, message.id)}
                           >
-                            <Copy size={14} />
+                            {copiedMessages[message.id] ? (
+                              <Check size={14} className="text-green-600" />
+                            ) : (
+                              <Copy size={14} />
+                            )}
                           </Button>
                         </MessageAction>
                         
-                        {/* Assistant Message Actions - ปุ่มสำหรับข้อความจาก AI */}
-                        {isAssistant && (
-                          <>
-                            {/* Upvote Button */}
-                            <MessageAction tooltip="Upvote" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <ThumbsUp size={14} />
-                              </Button>
-                            </MessageAction>
-                            
-                            {/* Downvote Button */}
-                            <MessageAction tooltip="Downvote" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <ThumbsDown size={14} />
-                              </Button>
-                            </MessageAction>
-                          </>
-                        )}
-                        
-                        {/* User Message Actions - ปุ่มสำหรับข้อความจากผู้ใช้ */}
-                        {!isAssistant && (
-                          <>
-                            {/* Edit Button */}
-                            <MessageAction tooltip="Edit" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <Pencil size={14} />
-                              </Button>
-                            </MessageAction>
-                            
-                            {/* Delete Button */}
-                            <MessageAction tooltip="Delete" bubbleStyle={true}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700 rounded-full"
-                              >
-                                <Trash size={14} />
-                              </Button>
-                            </MessageAction>
-                          </>
-                        )}
                       </MessageActions>
                     </Message>
                   )
@@ -498,7 +477,7 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
       {/* INPUT SECTION - ส่วนรับ input สำหรับต่อการสนทนา */}
       {/* ============================================================================ */}
       
-      <div className="bg-background z-10 shrink-0 px-3 pb-3 md:px-5 md:pb-5">
+      <div className="bg-background z-[5] shrink-0 px-3 pb-3 md:px-5 md:pb-5">
         <div className="mx-auto max-w-3xl">
           
           {/* ============================================================================ */}
@@ -642,33 +621,34 @@ export function ChatHistory({ sessionId, title, userId }: ChatHistoryProps) {
                     </Button>
                   </PromptInputAction>
 
-                  {/* Send Button - ปุ่มส่งข้อความ */}
+                  {/* Send/Stop Button - ปุ่มส่งข้อความหรือหยุด */}
                   {/*
-                   * Send Button
+                   * Send/Stop Button
                    * 
                    * Purpose:
-                   * - ส่งข้อความเพื่อต่อการสนทนา
+                   * - ส่งข้อความเพื่อต่อการสนทนา เมื่อไม่กำลัง loading
+                   * - หยุดการส่งข้อความ เมื่อกำลัง loading
                    * - แสดง loading state เมื่อกำลังส่ง
                    * - ตรวจสอบความพร้อมก่อนส่ง
                    * 
                    * Disabled Conditions:
-                   * - ข้อความว่าง (!input.trim())
-                   * - กำลัง loading
+                   * - ข้อความว่าง (!input.trim()) และไม่กำลัง loading
                    * - ไม่มี userId (ไม่ได้ login)
                    */}
                   <Button
                     size="icon"
-                    disabled={!input.trim() || loading || !userId}
-                    onClick={onSubmit}
+                    disabled={(!loading && (!input.trim() || !userId))}
+                    onClick={loading ? handleStop : onSubmit}
                     className="size-9 rounded-full"
+                    variant={loading ? 'destructive' : 'default'}
                   >
                     {/* แสดง icon ตาม loading state */}
                     {!loading ? (
                       /* แสดงลูกศรเมื่อพร้อม */
                       <ArrowUp size={18} />
                     ) : (
-                      /* แสดง loading indicator */
-                      <span className="size-3 rounded-xs bg-white" />
+                      /* แสดงปุ่ม stop เมื่อกำลังส่ง */
+                      <Square size={18} fill="currentColor" />
                     )}
                   </Button>
                 </div>

@@ -1682,7 +1682,6 @@ export const API_BASE = '/api/chat_07_tool_calling_postgres'
 ##### Tool 1: getProductInfoTool - ดูข้อมูลสินค้า
 - Gaming Mouse ราคาเท่าไหร่?
 - Smartwatch มีในสต็อกไหม?
-- ดูข้อมูลสินค้าที่มีคำว่า shoes ในชื่อ
 - Earbuds มีรายละเอียดสินค้าอย่างไร?
 
 ##### Tool 2: getSalesDataTool - ดูประวัติการขาย
@@ -1694,3 +1693,7 @@ export const API_BASE = '/api/chat_07_tool_calling_postgres'
 - สินค้า Running Shoes ราคาเท่าไหร่ และขายไปแล้วกี่ชิ้น?
 - Gaming Mouse ขายไปได้กี่ชิ้นแล้ว และตอนนี้เหลือในสต็อกเท่าไหร่?
 - Smartwatch มีรายละเอียดสินค้าอย่างไร และขายไปแล้วกี่ชิ้น?
+
+##### แสดงเป็นตาราง Markdown
+- สินค้าที่มีคำว่า "shoes" ในชื่อ มีอะไรบ้าง แสดงเป็นตาราง
+- เปรียบเทียบยอดขายของ Gaming Mouse และ Shoes แสดงในตาราง
