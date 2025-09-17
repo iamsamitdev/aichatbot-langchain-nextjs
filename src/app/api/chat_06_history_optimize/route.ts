@@ -17,31 +17,19 @@ import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts
 import { toUIMessageStream } from '@ai-sdk/langchain'
 import { createUIMessageStreamResponse, UIMessage } from 'ai'
 import { PostgresChatMessageHistory } from '@langchain/community/stores/message/postgres'
-import { Pool } from 'pg'
-
 import { BaseMessage, AIMessage, HumanMessage, SystemMessage, MessageContent } from '@langchain/core/messages'
 import { trimMessages } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { encodingForModel } from '@langchain/core/utils/tiktoken'
+import { getDatabase } from '@/lib/database'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
 // ===============================================
-// การตั้งค่า PostgreSQL Connection Pool
+// ใช้ centralized database utility
 // ===============================================
-/**
- * สร้าง Connection Pool สำหรับเชื่อมต่อฐานข้อมูล PostgreSQL
- * ใช้ Pool เพื่อจัดการ Connection ได้อย่างมีประสิทธิภาพ
- */
-const pool = new Pool({
-  host: process.env.PG_HOST,
-  port: Number(process.env.PG_PORT),
-  user: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  database: process.env.PG_DATABASE,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-})
+const pool = getDatabase()
 
 // ===============================================
 // ฟังก์ชันสำหรับนับ Token (Tiktoken)
@@ -191,7 +179,7 @@ export async function POST(req: NextRequest) {
     // Step 4: ตั้งค่า AI Model (OpenAI GPT-4o-mini)
     // ===============================================
     const model = new ChatOpenAI({
-      model: 'gpt-4o-mini',
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
       temperature: 0.7,
       maxTokens: 1000,
       streaming: true
@@ -203,14 +191,7 @@ export async function POST(req: NextRequest) {
     const messageHistory = new PostgresChatMessageHistory({
       sessionId: currentSessionId!,
       tableName: 'chat_messages',
-      pool: new Pool({
-        host: process.env.PG_HOST,
-        port: Number(process.env.PG_PORT),
-        user: process.env.PG_USER,
-        password: process.env.PG_PASSWORD,
-        database: process.env.PG_DATABASE,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-      })
+      pool: pool
     })
 
     const fullHistory = await messageHistory.getMessages()

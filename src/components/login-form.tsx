@@ -44,12 +44,35 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     }
   }
 
+  // เพิ่มการจัดการ autoComplete ใน handleSubmit
+  const handleFillDemo = () => {
+    setEmail('samit@email.com')
+    setPassword('123456')
+  }
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>Enter your email below to login to your account</CardDescription>
+          <div className="mt-2 px-4 bg-yellow-300 p-2 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-800">Email: samit@email.com</p>
+                <p className="text-sm text-gray-800">Password: 123456</p>
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={handleFillDemo}
+                className="ml-2 bg-white hover:bg-gray-50"
+              >
+                Auto Fill
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
@@ -60,6 +83,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                   id="email"
                   type="email"
                   placeholder="m@example.com"
+                  tabIndex={1}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -78,13 +102,14 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 <Input
                   id="password"
                   type="password"
+                  tabIndex={2}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" tabIndex={3} className="w-full" disabled={isLoading}>
                 {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </div>

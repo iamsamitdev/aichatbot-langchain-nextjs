@@ -17,37 +17,19 @@ import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts
 import { toUIMessageStream } from '@ai-sdk/langchain'
 import { createUIMessageStreamResponse, UIMessage } from 'ai'
 import { PostgresChatMessageHistory } from '@langchain/community/stores/message/postgres'
-import { Pool } from 'pg'
-import { v4 as uuidv4 } from 'uuid' // 👈 1. Import UUID
-
 import { BaseMessage, AIMessage, HumanMessage, SystemMessage, MessageContent } from '@langchain/core/messages'
 import { trimMessages } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { encodingForModel } from '@langchain/core/utils/tiktoken'
+import { getDatabase } from '@/lib/database'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
 // ===============================================
-// การตั้งค่า PostgreSQL Connection Pool
+// ใช้ centralized database utility แทน pool ที่สร้างเอง
 // ===============================================
-/**
- * สร้าง Connection Pool สำหรับเชื่อมต่อฐานข้อมูล PostgreSQL
- * ใช้ Pool เพื่อจัดการ Connection ได้อย่างมีประสิทธิภาพ
- */
-/**
- * PostgreSQL Connection Pool
- * ✅ สร้าง pool เพียงครั้งเดียวที่ Global Scope
- * เพื่อให้ทุก request สามารถใช้ connection pool นี้ร่วมกันได้
- */
-const pool = new Pool({
-  host: process.env.PG_HOST,
-  port: Number(process.env.PG_PORT),
-  user: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  database: process.env.PG_DATABASE,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-})
+const pool = getDatabase()
 
 // ===============================================
 // ฟังก์ชันสำหรับนับ Token (Tiktoken)
@@ -124,74 +106,98 @@ async function tiktokenCounter(messages: BaseMessage[]): Promise<number> {
 // ===============================================
 // POST API: ส่งข้อความและรับการตอบกลับแบบ Stream
 // ===============================================
-/**
- * ฟังก์ชันหลักสำหรับจัดการ Chat
- * 
- * Flow การทำงาน:
- * 1. สร้าง/ใช้ Session ID
- * 2. โหลด Summary เดิมจากฐานข้อมูล
- * 3. ตั้งค่า AI Model
- * 4. โหลดและ Trim ประวัติการสนทนา
- * 5. สร้าง Prompt Template
- * 6. สร้าง Stream Response
- * 7. บันทึกข้อความลงฐานข้อมูล
- * 8. อัปเดต Summary
- * 9. ส่ง Response กลับ
- */
 export async function POST(req: NextRequest) {
   try {
-
     const { messages, sessionId, userId }: {
       messages: UIMessage[]
       sessionId?: string
       userId?: string
     } = await req.json()
 
-    // ===============================================
-    // Step 1: Optimistic Session Management
-    // สร้าง ID ชั่วคราวสำหรับ session ใหม่ทันที ไม่ต้องรอ DB
-    // ===============================================
+    const mapUIMessagesToLangChainMessages = (messages: UIMessage[]): BaseMessage[] => {
+      return messages.map(msg => {
+        const content = msg.parts?.find(p => p.type === 'text')?.text ?? ''
+        if (msg.role === 'user') {
+          return new HumanMessage(content)
+        } else if (msg.role === 'assistant') {
+          return new AIMessage(content)
+        }
+        // สามารถเพิ่มเงื่อนไขสำหรับ role อื่นๆ ได้ตามต้องการ
+        return new HumanMessage(content) // fallback
+      })
+    }
+
     const isNewSession = !sessionId
-    const currentSessionId = sessionId || uuidv4()
+    let currentSessionId = sessionId
 
     // ===============================================
-    // Step 2: ดึงข้อมูลที่จำเป็นล่วงหน้า (ทำพร้อมกัน)
+    // Step 1: Hybrid Session Management
+    // ===============================================
+    if (isNewSession) {
+      if (!userId) throw new Error('User ID is required for new sessions')
+      currentSessionId = await createNewSession(userId, messages)
+    }
+    
+    if (!currentSessionId) {
+      throw new Error("Failed to create or identify session ID")
+    }
+
+    // ===============================================
+    // Step 2: ดึงข้อมูลที่จำเป็นล่วงหน้า
     // ===============================================
     let persistedSummary = ''
     let fullHistory: BaseMessage[] = []
 
-    if (!isNewSession) {
-      // ถ้าเป็น session เดิม ให้ดึง summary และ history พร้อมกันเพื่อลดเวลา
-      const [summaryResult, historyResult] = await Promise.all([
-        pool.query('SELECT summary FROM chat_sessions WHERE id = $1 LIMIT 1', [currentSessionId]),
-        new PostgresChatMessageHistory({ sessionId: currentSessionId, tableName: 'chat_messages', pool }).getMessages()
-      ])
-      persistedSummary = summaryResult.rows?.[0]?.summary ?? ''
-      fullHistory = historyResult
-    }
+    const [summaryResult, historyResult] = await Promise.all([
+      pool.query('SELECT summary FROM chat_sessions WHERE id = $1 LIMIT 1', [currentSessionId]),
+      new PostgresChatMessageHistory({ sessionId: currentSessionId, tableName: 'chat_messages', pool }).getMessages()
+    ])
+    persistedSummary = summaryResult.rows?.[0]?.summary ?? ''
+    const dbHistory = historyResult
 
+    // สำหรับ session ใหม่: ใช้แค่ messages จาก client
+    // สำหรับ session เก่า: ใช้ประวัติจากฐานข้อมูล + ข้อความใหม่ล่าสุด
+    if (isNewSession) {
+      fullHistory = mapUIMessagesToLangChainMessages(messages)
+    } else {
+      // รวมประวัติจากฐานข้อมูลกับข้อความใหม่จาก client (แค่ข้อความล่าสุด)
+      const newMessages = mapUIMessagesToLangChainMessages(messages)
+      const latestUserMessage = newMessages.filter(m => m instanceof HumanMessage).pop()
+      
+      if (latestUserMessage) {
+        fullHistory = [...dbHistory, latestUserMessage]
+      } else {
+        fullHistory = dbHistory
+      }
+    }
+    
     // ===============================================
     // Step 3: ตั้งค่า AI Model และดึง Input จาก User
     // ===============================================
     const model = new ChatOpenAI({
-      model: 'gpt-4o-mini',
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
       temperature: 0.7,
-      maxTokens: 1000,
+      maxTokens: 5000,
       streaming: true
     })
-
-    const lastUserMessage = messages.filter(m => m.role === 'user').pop()
-    const input = lastUserMessage?.parts?.find(p => p.type === 'text')?.text ?? ''
+    
+    // ดึงข้อความล่าสุดของผู้ใช้ออกมาเป็น input และนำข้อความที่เหลือไปเป็น history
+    const lastUserMessage = fullHistory.filter(m => m instanceof HumanMessage).pop()
+    const input = lastUserMessage?.content.toString() ?? ''
     if (!input) return new Response('No valid user input found.', { status: 400 })
 
-    // ===============================================
-    // Step 4: Trim ประวัติแชท (ถ้ามี)
-    // ✅ ยกเลิกการสร้าง overflowSummary ที่เรียก AI ล่วงหน้า
-    // ===============================================
-    const recentWindow = fullHistory.length > 0
-      ? await trimMessages(fullHistory, { maxTokens: 1500, strategy: 'last', tokenCounter: tiktokenCounter })
-      : []
+    // นำข้อความสุดท้ายที่ใช้เป็น input ออกจาก fullHistory (ตรวจสอบ undefined ก่อน)
+    const historyWithoutLastInput = lastUserMessage 
+      ? fullHistory.slice(0, fullHistory.lastIndexOf(lastUserMessage))
+      : fullHistory
 
+    // ===============================================
+    // Step 4: Trim ประวัติแชท
+    // ===============================================
+    const recentWindow = historyWithoutLastInput.length > 0
+      ? await trimMessages(historyWithoutLastInput, { maxTokens: 1500, strategy: 'last', tokenCounter: tiktokenCounter })
+      : []
+    
     // ===============================================
     // Step 5: สร้าง Prompt และ Chain
     // ===============================================
@@ -204,7 +210,7 @@ export async function POST(req: NextRequest) {
     const chain = prompt.pipe(model).pipe(new StringOutputParser())
 
     // ===============================================
-    // Step 6: สร้าง Stream และบันทึกข้อมูลแบบ Pipeline
+    // Step 6: สร้าง Stream และบันทึกข้อมูล
     // ===============================================
     let assistantText = ''
     const messageHistory = new PostgresChatMessageHistory({
@@ -212,18 +218,14 @@ export async function POST(req: NextRequest) {
       tableName: 'chat_messages',
       pool: pool,
     })
-
-    // 1. บันทึกข้อความ User ก่อนเริ่ม stream
-    await messageHistory.addUserMessage(input)
-
-    // 2. สร้าง Stream พร้อมเก็บ Response
-    const stream = await chain.stream({ 
-      input, 
-      summary: persistedSummary, 
-      recent_window: recentWindow 
+    
+    // ไม่ต้องบันทึก input ล่วงหน้า เพราะ LangChain จะบันทึกให้ตอนจบ
+    const stream = await chain.stream({
+      input,
+      summary: persistedSummary,
+      recent_window: recentWindow
     })
 
-    // 3. สร้าง ReadableStream ที่เก็บข้อมูลและประมวลผลพร้อมกัน
     const responseStream = new ReadableStream<string>({
       async start(controller) {
         try {
@@ -233,23 +235,23 @@ export async function POST(req: NextRequest) {
           }
           controller.close()
           
-          // 4. บันทึกข้อมูลหลังจาก Stream จบ
           if (assistantText) {
             try {
-              // บันทึกคำตอบของ AI
-              await messageHistory.addMessage(new AIMessage(assistantText))
+              // บันทึก User Input และ AI Response ลง DB
+              await messageHistory.addMessages([
+                  new HumanMessage(input),
+                  new AIMessage(assistantText)
+              ])
 
-              // แยกการทำงานสำหรับ Session ใหม่ และ Session เก่า
-              if (isNewSession) {
-                await createSessionAndUpdateMessages(currentSessionId, userId, messages)
-              } else {
-                const newHistoryForSummary = [
-                  ...recentWindow.map(m => formatMessageForSummary(m)),
-                  `ผู้ใช้: ${input}`,
-                  `ผู้ช่วย: ${assistantText}`
-                ].join('\n')
-                await updateSessionSummary(currentSessionId, persistedSummary, newHistoryForSummary)
-              }
+              // อัปเดต Summary เสมอ - ใช้ประวัติทั้งหมดจากฐานข้อมูล
+              const allHistoryForSummary = [
+                ...dbHistory.map(m => formatMessageForSummary(m)),
+                `ผู้ใช้: ${input}`,
+                `ผู้ช่วย: ${assistantText}`
+              ].join('\n')
+              
+              await updateSessionSummary(currentSessionId!, persistedSummary, allHistoryForSummary)
+
             } catch (bgError) {
               console.error("❌ Background task error:", bgError)
             }
@@ -265,31 +267,18 @@ export async function POST(req: NextRequest) {
       stream: toUIMessageStream(responseStream),
       headers: { 'x-session-id': currentSessionId },
     })
+
   } catch (error) {
     console.error('API Error:', error)
-    return new Response(
-      JSON.stringify({
-        error: 'An error occurred while processing your request',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ error: 'An error occurred' }), { status: 500 })
   }
 }
 
 // ===============================================
-// 🚀 Helper Functions: แยก Logic เพื่อความสะอาด
+// 🚀 Helper Functions
 // ===============================================
 
-/**
- * สร้าง Session ใหม่และอัปเดตข้อความที่ถูกบันทึกด้วย Temp ID
- */
-async function createSessionAndUpdateMessages(tempSessionId: string, userId: string | undefined, messages: UIMessage[]) {
-  if (!userId) {
-    console.error("❌ Cannot save session without a User ID.")
-    return
-  }
-
+async function createNewSession(userId: string, messages: UIMessage[]): Promise<string> {
   const client = await pool.connect()
   try {
     const firstMessage = messages.find(m => m.role === 'user')
@@ -297,62 +286,52 @@ async function createSessionAndUpdateMessages(tempSessionId: string, userId: str
     if (firstMessage?.parts?.[0]?.type === 'text') {
       title = firstMessage.parts[0].text.slice(0, 50)
     }
-
     const sessionResult = await client.query(
       'INSERT INTO chat_sessions (title, user_id) VALUES ($1, $2) RETURNING id',
       [title, userId]
     )
     const permanentSessionId = sessionResult.rows[0].id
-
-    const updateResult = await client.query(
-      'UPDATE chat_messages SET session_id = $1 WHERE session_id = $2',
-      [permanentSessionId, tempSessionId]
-    )
+    // console.log(`✅ New session created with permanent ID: ${permanentSessionId}`)
+    return permanentSessionId
   } catch (error) {
-    console.error("❌ Error in createSessionAndUpdateMessages:", error)
-    throw error // Re-throw เพื่อให้เห็น error
+    console.error("❌ Error in createNewSession:", error)
+    throw error
   } finally {
     client.release()
   }
 }
 
-/**
- * อัปเดต Summary สำหรับ Session ที่มีอยู่แล้ว
- */
-async function updateSessionSummary(sessionId: string, oldSummary: string, delta: string) {
-  
+async function updateSessionSummary(sessionId: string, oldSummary: string, allHistory: string) {
   try {
-    const model = new ChatOpenAI({ model: 'gpt-4o-mini' })
+    const model = new ChatOpenAI({ model: process.env.OPENAI_MODEL || 'gpt-4o-mini' })
+    
+    // ปรับปรุง: สร้าง summary ใหม่จากประวัติทั้งหมด แทนการอัปเดตเพิ่มเติม
     const summarizerPrompt = ChatPromptTemplate.fromMessages([
-      ['system', 'รวมสาระสำคัญให้สั้นที่สุด ภาษาไทย กระชับ'],
-      ['human', 'นี่คือสรุปเดิม:\n{old}\n\nนี่คือข้อความใหม่:\n{delta}\n\nช่วยอัปเดตให้สั้นและครบถ้วน']
+      ['system', 'สร้างสรุปสั้นๆ ของการสนทนาทั้งหมด ให้ครอบคลุมหัวข้อหลักและประเด็นสำคัญ ใช้ภาษาไทย กระชับ ไม่เกิน 200 คำ'],
+      ['human', 'ประวัติการสนทนาทั้งหมด:\n{history}\n\nช่วยสรุปสาระสำคัญของการสนทนานี้']
     ])
+    
     const summarizer = summarizerPrompt.pipe(model).pipe(new StringOutputParser())
     const updatedSummary = await summarizer.invoke({
-      old: oldSummary || 'ไม่มีประวัติก่อนหน้า',
-      delta: delta,
+      history: allHistory,
     })
     
-    const result = await pool.query(
-      'UPDATE chat_sessions SET summary = $1 WHERE id = $2 RETURNING id',
+    await pool.query(
+      'UPDATE chat_sessions SET summary = $1 WHERE id = $2',
       [updatedSummary, sessionId]
     )
-
+    
+    // console.log(`✅ Updated summary for session ${sessionId}: ${updatedSummary.substring(0, 100)}...`)
   } catch (e) {
     console.error(`❌ Failed to update summary for session ${sessionId}:`, e)
-    throw e // Re-throw เพื่อให้เห็น error
   }
 }
 
-/**
- * ฟังก์ชันช่วยแปลง Message Object เป็น String สำหรับทำ Summary
- */
 function formatMessageForSummary(m: BaseMessage): string {
     if (m instanceof HumanMessage) return `ผู้ใช้: ${m.content}`
     if (m instanceof AIMessage) return `ผู้ช่วย: ${m.content}`
     return `ระบบ: ${String(m.content)}`
 }
-
 
 // ===============================================
 // GET API: ดึงประวัติการสนทนาจาก Session ID

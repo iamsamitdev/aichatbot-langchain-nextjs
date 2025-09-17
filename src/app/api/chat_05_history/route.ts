@@ -25,7 +25,25 @@ import { toUIMessageStream } from "@ai-sdk/langchain"
 import { createUIMessageStreamResponse, UIMessage } from "ai"
 import { RunnableWithMessageHistory } from '@langchain/core/runnables'
 import { PostgresChatMessageHistory } from "@langchain/community/stores/message/postgres"
-import { Pool } from 'pg'
+import { getDatabase } from '@/lib/database'
+
+// ===============================================
+// Type Definitions - การกำหนด Types
+// ===============================================
+
+/**
+ * Interface สำหรับ database row ที่ได้จาก query chat_messages
+ */
+interface ChatMessageRow {
+  message: {
+    content?: string;
+    text?: string;
+    message?: string;
+    type?: string;
+  };
+  message_type: string;
+  created_at: string;
+}
 
 // ===============================================
 // Route Configuration - การตั้งค่า Route
@@ -57,26 +75,6 @@ export const maxDuration = 30 // วินาที
 // ===============================================
 // Database Connection Setup - การตั้งค่าฐานข้อมูล
 // ===============================================
-
-/**
- * PostgreSQL Connection Pool
- * สร้าง connection pool สำหรับจัดการการเชื่อมต่อ database อย่างมีประสิทธิภาพ
- * 
- * Configuration:
- * - host: ที่อยู่ของ database server
- * - port: พอร์ตของ database
- * - user/password: ข้อมูลการเข้าถึง
- * - database: ชื่อฐานข้อมูล
- * - ssl: การตั้งค่า SSL สำหรับ production
-*/
-const pool = new Pool({
-  host: process.env.PG_HOST,                                        // ที่อยู่ database server
-  port: Number(process.env.PG_PORT),                               // พอร์ต database (แปลงเป็น number)
-  user: process.env.PG_USER,                                       // username สำหรับเข้าถึง database
-  password: process.env.PG_PASSWORD,                               // password สำหรับเข้าถึง database
-  database: process.env.PG_DATABASE,                               // ชื่อ database ที่ต้องการเชื่อมต่อ
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,  // SSL config สำหรับ production
-})
 
 // ===============================================
 // POST Handler - จัดการการส่งข้อความและตอบกลับ
@@ -132,7 +130,7 @@ export async function POST(req: NextRequest) {
      */
     if (!currentSessionId) {
       // Step 2.1: เชื่อมต่อ database
-      const client = await pool.connect()
+      const client = await getDatabase().connect()
       try {
         // Step 2.2: สร้าง title จากข้อความแรกของผู้ใช้
         const firstMessage = messages.find(m => m.role === 'user');
@@ -208,7 +206,7 @@ export async function POST(req: NextRequest) {
      * - streaming: เปิดใช้ streaming response
      */
     const model = new ChatOpenAI({
-      model: "gpt-4o-mini",                                         // ระบุรุ่น AI model ที่ใช้
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',             // ระบุรุ่น AI model ที่ใช้
       temperature: 0.7,                                             // ความสร้างสรรค์
       maxTokens: 1000,                                              // จำนวน token สูงสุดสำหรับคำตอบ
       streaming: true,                                              // เปิดใช้ streaming response
@@ -235,14 +233,7 @@ export async function POST(req: NextRequest) {
     const messageHistory = new PostgresChatMessageHistory({
       sessionId: currentSessionId,                                  // ID ของ session ปัจจุบัน
       tableName: "chat_messages",                                   // ชื่อตารางในฐานข้อมูล
-      pool: new Pool({                                              // สร้าง pool ใหม่สำหรับ message history
-        host: process.env.PG_HOST,
-        port: Number(process.env.PG_PORT),
-        user: process.env.PG_USER,
-        password: process.env.PG_PASSWORD,
-        database: process.env.PG_DATABASE,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      }),
+      pool: getDatabase(),                                          // ใช้ database pool จาก utility กลาง
     })
 
     /**
@@ -431,7 +422,7 @@ export async function GET(req: NextRequest) {
      * เชื่อมต่อกับ PostgreSQL database
      * ใช้ connection pool เพื่อจัดการ connection อย่างมีประสิทธิภาพ
      */
-    const client = await pool.connect()                                     // เชื่อมต่อ database
+    const client = await getDatabase().connect()                            // เชื่อมต่อ database
     
     try {
       // ===============================================
@@ -466,7 +457,7 @@ export async function GET(req: NextRequest) {
        * 3. ดึง content จาก JSON message field
        * 4. สร้าง object ในรูปแบบที่ UI เข้าใจ
        */
-      const messages = result.rows.map((row, index) => {
+      const messages = result.rows.map((row: ChatMessageRow, index: number) => {
         const messageData = row.message                                     // ข้อมูล message ในรูปแบบ JSON
         
         /**
