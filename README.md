@@ -215,6 +215,7 @@ aichatbot-langchain-nextjs/
 │   │   ├── sign-up-form.tsx          # Registration form (Supabase UI)
 │   │   └── update-password-form.tsx  # Update password form (Supabase UI)
 │   ├── constants/
+│   │   ├── api.ts                    # API endpoints constants and URL builders
 │   │   └── models.ts                 # AI model constants and configurations
 │   ├── contexts/
 │   │   └── chat-context.tsx          # Chat context provider for state management
@@ -225,6 +226,7 @@ aichatbot-langchain-nextjs/
 │   ├── lib/
 │   │   ├── client.ts                 # Supabase client configurations
 │   │   ├── custom-chat-transport.ts  # Custom chat transport layer
+│   │   ├── database.ts               # PostgreSQL connection pool utilities
 │   │   ├── middleware.ts             # Authentication middlewares
 │   │   ├── server.ts                 # Server-side Supabase utilities
 │   │   ├── theme-provider.tsx        # Theme provider for dark/light mode
@@ -322,6 +324,10 @@ aichatbot-langchain-nextjs/
   - Session switching และ navigation
 
 #### 📦 **Constants & Configuration**
+- **`/constants/api.ts`**: ค่าคงที่และ utilities สำหรับ API endpoints
+  - API base URLs และ endpoints configuration
+  - URL builder functions สำหรับ dynamic parameters
+  - Tool calling API endpoints management
 - **`/constants/models.ts`**: ค่าคงที่และการตั้งค่าสำหรับ AI models
   - Model configurations
   - Provider settings
@@ -329,6 +335,7 @@ aichatbot-langchain-nextjs/
 - **`/lib/`**: 
   - **Supabase**: Client configurations, server utilities
   - **Authentication**: Middleware functions
+  - **Database**: PostgreSQL connection pool และ utilities
   - **Theme Provider**: Dark/light mode management
   - **Chat Transport**: Custom chat transport layer
   - **Utilities**: Tailwind merge, helper functions
@@ -361,7 +368,9 @@ aichatbot-langchain-nextjs/
 ```json
 {
   "@supabase/supabase-js": "Supabase JavaScript client",
-  "@supabase/ssr": "Supabase Server-Side Rendering helpers"
+  "@supabase/ssr": "Supabase Server-Side Rendering helpers",
+  "pg": "PostgreSQL client สำหรับ Node.js",
+  "@types/pg": "TypeScript definitions สำหรับ pg"
 }
 ```
 
@@ -396,9 +405,10 @@ aichatbot-langchain-nextjs/
 ```json
 {
   "@langchain/core": "LangChain core utilities สำหรับ message handling",
+  "@langchain/tools": "LangChain tools สำหรับ function calling",
   "tiktoken": "Token counting และ management สำหรับ AI models",
   "uuid": "การสร้าง unique identifiers สำหรับ sessions",
-  "pg": "PostgreSQL client สำหรับ database operations",
+  "pg": "PostgreSQL client สำหรับ database operations และ tool calling",
   "use-stick-to-bottom": "Auto-scroll utilities สำหรับ chat interface"
 }
 ```
@@ -578,6 +588,11 @@ Endpoint หลักสำหรับจัดการการสนทน�
 |--------|----------|--------|
 | `NEXT_PUBLIC_SUPABASE_URL` | URL ของ Supabase project | ✅ ใช่ |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Supabase Anon/Public key | ✅ ใช่ |
+| `PG_HOST` | โฮสต์ของ PostgreSQL (ถ้าใช้ RAG + pgvector) | ✅ ใช่ |
+| `PG_PORT` | พอร์ตของ PostgreSQL (default: 6543) | | ไม่ |
+| `PG_USER` | ชื่อผู้ใช้ PostgreSQL | ✅ ใช่ |
+| `PG_PASSWORD` | รหัสผ่าน PostgreSQL | ✅ ใช่ |
+| `PG_DATABASE` | ชื่อฐานข้อมูล PostgreSQL | ไม่ |
 | `OPENAI_API_KEY` | OpenAI API key ของคุณ | ✅ ใช่ |
 | `OPENAI_MODEL_NAME` | ชื่อโมเดล OpenAI ที่ใช้ | ไม่ (default: gpt-4o-mini) |
 | `GOOGLE_API_KEY` | Google AI API key (สำหรับ Gemini) | ไม่ |
@@ -594,17 +609,21 @@ Endpoint หลักสำหรับจัดการการสนทน�
 | `VLLM_MODEL_NAME` | ชื่อโมเดลใน vLLM | ไม่ |
 | `GRADIENT_ACCESS_TOKEN` | Gradient AI access token | ไม่ |
 | `GRADIENT_WORKSPACE_ID` | Gradient AI workspace ID | ไม่ |
-| `PG_HOST` | PostgreSQL host address | ไม่ (สำหรับ local PostgreSQL) |
-| `PG_PORT` | PostgreSQL port number | ไม่ (default: 5432) |
-| `PG_USER` | PostgreSQL username | ไม่ (สำหรับ local PostgreSQL) |
-| `PG_PASSWORD` | PostgreSQL password | ไม่ (สำหรับ local PostgreSQL) |
-| `PG_DATABASE` | PostgreSQL database name | ไม่ (สำหรับ local PostgreSQL) |
+| `GRADIENT_MODEL_ID` | Gradient AI model ID | ไม่ |
 
 ### ตัวอย่างไฟล์ .env
 ```env
 # === Supabase config (จำเป็น) =====
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-anon-key
+
+# ===  postgres config =====
+# การใช้กับ RAG + LangChain + pgvector แนะนำเป็นแบบ Transaction pooler (Shared Pooler)
+PG_HOST=your-postgres-host
+PG_PORT=6543
+PG_USER=your-postgres-user
+PG_PASSWORD=your-postgres-password
+PG_DATABASE=postgres
 
 # === OPENAI (ChatGPT) - จำเป็น =====
 OPENAI_API_KEY=sk-your-openai-api-key
