@@ -12,26 +12,33 @@
 - **Chat History & Sessions**: ระบบจัดเก็บและแสดงประวัติการสนทนาแบบเรียลไทม์
 - **Optimistic Session Management**: การจัดการ session แบบ optimistic เพื่อ UX ที่ดีขึ้น
 - **Smart Message Summarization**: ระบบสรุปข้อความอัตโนมัติเพื่อประหยัด token
-- **Token Management**: การจัดการและนับ token ด้วย tiktoken
+- **Token Management**: การจัดการและนับ token อย่างมีประสิทธิภาพ
 - **Model Selector**: เลือก AI model ที่ต้องการใช้งาน
 - **Math/LaTeX Rendering**: แสดงสูตรทางคณิตศาสตร์ด้วย KaTeX
 - **Chat Sidebar**: ประวัติการสนทนาและการจัดการ chat sessions
-- **UI ที่ทันสมัย**: อินเทอร์เฟซแชทที่สวยงามด้วย Shadcn/UI และ Tailwind CSS
+- **UI ที่ทันสมัย**: อินเทอร์เฟซแชทที่สวยงามด้วย Shadcn/UI และ Tailwind CSS v4
 - **Next.js 15 App Router**: ใช้ฟีเจอร์ล่าสุดของ Next.js และ file-based routing
 - **Protected Routes**: การป้องกันหน้าที่ต้องเข้าสู่ระบบด้วย middleware
 - **Modular API Design**: API endpoints แบ่งตาม functionality และมี tutorial endpoints
 - **Settings System**: ระบบการตั้งค่าต่างๆ สำหรับผู้ใช้
 - **Tool Calling & Function Calling**: รองรับการเรียกใช้ tools และ functions ขั้นสูง
 - **PostgreSQL Integration**: การรวมกับ PostgreSQL สำหรับ tool calling
+- **RAG (Retrieval Augmented Generation)**: ระบบค้นหาและใช้เอกสาร PDF/CSV เพื่อให้คำตอบที่แม่นยำ
+- **Document Processing**: รองรับการประมวลผลไฟล์ PDF และ CSV
+- **pgvector Integration**: ใช้ pgvector สำหรับ vector embeddings และ semantic search
 - **Responsive Design**: ใช้งานได้ทั้งเดสก์ท็อปและมือถือ
 
 ## 🛠️ เทคโนโลยีที่ใช้
 
-- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS, Shadcn/UI
-- **AI/ML**: LangChain, OpenAI API, AI SDK, Tool Calling, Function Calling
-- **Database & Auth**: Supabase (PostgreSQL, Authentication, Real-time)
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS v4, Shadcn/UI
+- **AI/ML**: LangChain, OpenAI API, Google Generative AI, AI SDK, Tool Calling, Function Calling
+- **Database & Auth**: Supabase (PostgreSQL, Authentication, Real-time), pgvector
 - **Backend**: Next.js API Routes (Edge Runtime)
-- **Styling**: Tailwind CSS, Radix UI Components
+- **Document Processing**: PDF parsing, CSV processing, Vector embeddings
+- **RAG**: LangChain Document Loaders, pgvector, Semantic Search
+- **Styling**: Tailwind CSS v4, Radix UI Components, KaTeX
+- **Development**: TypeScript, ESLint, tw-animate-css
+- **Version Control**: Git, GitHub
 
 ## 📋 สิ่งที่ต้องเตรียมก่อนเริ่ม
 
@@ -103,6 +110,37 @@ npm run dev
 7. **เปิดเบราว์เซอร์**
 ไปที่ [http://localhost:3000](http://localhost:3000) เพื่อดูแอปพลิเคชัน
 
+#### 🏗️ สถาปัตยกรรมระบบ
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        User Question                            │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   AI Agent (LangChain)                          │
+│                                                                 │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐    │
+│  │ search_documents│ │ get_product_info│ │ get_sales_data  │    │
+│  │                 │ │                 │ │                 │    │
+│  │ Vector Search   │ │ Structured DB   │ │ Sales History   │    │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘    │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Data Sources                                 │
+│                                                                 │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐    │
+│  │ documents  │ │ products table  │ │ sales table     │    │
+│  │                 │ │                 │ │                 │    │
+│  │ pgvector        │ │ PostgreSQL      │ │ PostgreSQL      │    │
+│  │ (embeddings)    │ │ (structured)    │ │ (structured)    │    │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## 📁 โครงสร้างโปรเจ็กต์
 
 ```
@@ -137,8 +175,6 @@ aichatbot-langchain-nextjs/
 │   │   │   │   └── route.ts          # Step 4: Streaming responses
 │   │   │   ├── chat_05_history/
 │   │   │   │   └── route.ts          # Step 5: Chat history management
-│   │   │   ├── chat_05_optimistic/
-│   │   │   │   └── route.ts          # Step 5.1: Optimistic session handling
 │   │   │   ├── chat_06_history_optimistic/
 │   │   │   │   ├── route.ts          # Step 6.1: Advanced optimistic history
 │   │   │   │   └── session/
@@ -147,8 +183,6 @@ aichatbot-langchain-nextjs/
 │   │   │   │   ├── route.ts          # Step 6.2: History optimization & summarization
 │   │   │   │   └── session/
 │   │   │   │       └── route.ts      # Optimized session endpoints
-│   │   │   ├── chat_06_summary/
-│   │   │   │   └── route.ts          # Step 6.3: Smart message summarization
 │   │   │   ├── chat_07_tool_calling_postgres/
 │   │   │   │   ├── route.ts          # Step 7.1: Tool calling with PostgreSQL
 │   │   │   │   └── session/
@@ -157,17 +191,27 @@ aichatbot-langchain-nextjs/
 │   │   │   │   ├── route.ts          # Step 7.2: Sample tool calling
 │   │   │   │   └── session/
 │   │   │   │       └── route.ts      # Sample session endpoints
-│   │   │   ├── test/
-│   │   │   │   └── route.ts          # Test API endpoint
+│   │   │   ├── chat_08_rag/
+│   │   │   │   ├── route.ts          # Step 8: RAG (Retrieval Augmented Generation)
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # RAG session management
+│   │   │   ├── chat_09_rag_tool_calling/
+│   │   │   │   ├── route.ts          # Step 9: RAG + Tool Calling Integration
+│   │   │   │   └── session/
+│   │   │   │       └── route.ts      # RAG + Tool calling session management
+│   │   │   ├── document_loader_embeding_pgvector/
+│   │   │   │   ├── text_csv/
+│   │   │   │   │   └── route.ts      # CSV document processing & embeddings
+│   │   │   │   └── text_csv_pdf/
+│   │   │   │       └── route.ts      # PDF + CSV document processing & embeddings
 │   │   │   └── route.ts              # Base API routes (GET, POST, PUT, DELETE)
 │   │   ├── chat/
 │   │   │   ├── layout.tsx            # Chat layout (protected)
 │   │   │   ├── page.tsx              # Chat interface (authenticated users only)
-│   │   │   ├── page_archive.tsx      # Archived chat page
 │   │   │   └── [id]/
 │   │   │       └── page.tsx          # Individual chat conversation page
 │   │   ├── favicon.ico               # App favicon
-│   │   ├── globals.css               # Global styles with Tailwind + KaTeX CSS
+│   │   ├── globals.css               # Global styles with Tailwind v4 + KaTeX CSS
 │   │   ├── layout.tsx                # Root layout
 │   │   └── page.tsx                  # Landing/home page
 │   ├── components/
@@ -232,6 +276,12 @@ aichatbot-langchain-nextjs/
 │   │   ├── theme-provider.tsx        # Theme provider for dark/light mode
 │   │   └── utils.ts                  # Utility functions (Tailwind merge, etc.)
 │   └── middleware.ts                 # Next.js middleware for auth protection
+├── data/                             # Data files for RAG
+│   ├── pdf/
+│   │   └── product.pdf               # Sample PDF document for RAG testing
+│   └── text_csv/
+│       ├── information.txt           # Sample text file
+│       └── product.csv               # Sample CSV file for structured data
 ├── public/                           # Static assets
 │   ├── file.svg
 │   ├── globe.svg
@@ -249,11 +299,13 @@ aichatbot-langchain-nextjs/
 ├── Day5_Note.md                      # บันทึกการอบรม Day 5
 ├── Day6_Note.md                      # บันทึกการอบรม Day 6
 ├── Day7_Note.md                      # บันทึกการอบรม Day 7
+├── Day8_Note.md                      # บันทึกการอบรม Day 8
 ├── eslint.config.mjs                 # ESLint configuration
 ├── next-env.d.ts                     # Next.js TypeScript declarations
 ├── next.config.ts                    # Next.js configuration
 ├── package.json                      # Dependencies และ scripts
 ├── postcss.config.mjs                # PostCSS configuration
+├── RAG_TROUBLESHOOTING.md            # RAG troubleshooting guide
 ├── tsconfig.json                     # TypeScript configuration
 └── README.md                         # Documentation (ไฟล์นี้)
 ```
@@ -271,19 +323,20 @@ aichatbot-langchain-nextjs/
 
 #### 🤖 **API Endpoints**
 - **`/api/route.ts`**: API endpoints พื้นฐาน (GET, POST, PUT, DELETE)
-- **`/api/test/route.ts`**: API ทดสอบการรับส่งข้อมูล
 - **`/api/chat/route.ts`**: Chat API หลักสำหรับ production
 - **`/api/chat_01_start/`**: ขั้นตอนที่ 1 - การตั้งค่า chat พื้นฐาน
 - **`/api/chat_02_request/`**: ขั้นตอนที่ 2 - การจัดการ HTTP requests
 - **`/api/chat_03_template/`**: ขั้นตอนที่ 3 - การใช้ Prompt templates
 - **`/api/chat_04_stream/`**: ขั้นตอนที่ 4 - การตอบสนองแบบ streaming
 - **`/api/chat_05_history/`**: ขั้นตอนที่ 5 - การจัดการประวัติการสนทนา
-- **`/api/chat_05_optimistic/`**: ขั้นตอนที่ 5.1 - การจัดการ session แบบ optimistic
 - **`/api/chat_06_history_optimistic/`**: ขั้นตอนที่ 6.1 - ประวัติแชทแบบ optimistic ขั้นสูง
 - **`/api/chat_06_history_optimize/`**: ขั้นตอนที่ 6.2 - การปรับปรุงประสิทธิภาพประวัติ
-- **`/api/chat_06_summary/`**: ขั้นตอนที่ 6.3 - ระบบสรุปข้อความอัจฉริยะ
 - **`/api/chat_07_tool_calling_postgres/`**: ขั้นตอนที่ 7.1 - Tool calling พร้อม PostgreSQL integration
 - **`/api/chat_07_tool_calling_sample/`**: ขั้นตอนที่ 7.2 - ตัวอย่าง Tool calling และ Function calling
+- **`/api/chat_08_rag/`**: ขั้นตอนที่ 8 - RAG (Retrieval Augmented Generation)
+- **`/api/chat_09_rag_tool_calling/`**: ขั้นตอนที่ 9 - RAG + Tool Calling Integration
+- **`/api/document_loader_embeding_pgvector/text_csv/`**: CSV document processing และ vector embeddings
+- **`/api/document_loader_embeding_pgvector/text_csv_pdf/`**: PDF + CSV document processing และ vector embeddings
 
 #### 🎨 **UI Components**
 - **`/components/ui/`**: 
@@ -347,20 +400,33 @@ aichatbot-langchain-nextjs/
 
 ## 🎯 Dependencies สำคัญ
 
+### 🤖 AI/ML Framework
 ```json
 {
   "langchain": "เฟรมเวิร์กสำหรับแอป AI ขั้นสูง",
   "@langchain/core": "ฟังก์ชันหลักและ abstractions ของ LangChain",
   "@langchain/openai": "การรวม OpenAI API สำหรับ LangChain",
   "@langchain/google-genai": "การรวม Google Generative AI",
-  "@langchain/community": "Community integrations (Gradient AI)",
+  "@langchain/community": "Community integrations และ document loaders",
   "@ai-sdk/langchain": "ตัวเชื่อมต่อ LangChain สำหรับ AI SDK",
   "@ai-sdk/react": "React hooks สำหรับแอป AI (useChat, useAssistant)",
-  "@ai-sdk/openai": "OpenAI provider สำหรับ AI SDK",
-  "ai": "AI SDK สำหรับ streaming และการจัดการข้อความ",
-  "next": "React framework สำหรับ production",
-  "react": "Library สำหรับสร้าง user interfaces",
-  "typescript": "Type-safe JavaScript"
+  "ai": "AI SDK สำหรับ streaming และการจัดการข้อความ"
+}
+```
+
+### ⚛️ Frontend Framework & UI
+```json
+{
+  "next": "React framework สำหรับ production (v15.5.2)",
+  "react": "Library สำหรับสร้าง user interfaces (v19.1.0)",
+  "react-dom": "React DOM renderer (v19.1.0)",
+  "typescript": "Type-safe JavaScript",
+  "@radix-ui/react-*": "Radix UI components สำหรับ accessibility",
+  "tailwindcss": "Utility-first CSS framework (v4)",
+  "class-variance-authority": "สำหรับจัดการ CSS classes แบบ type-safe",
+  "tailwind-merge": "สำหรับรวม Tailwind CSS classes อย่างฉลาด",
+  "clsx": "Utility สำหรับสร้าง className strings แบบมีเงื่อนไข",
+  "lucide-react": "Icon library ที่ทันสมัยและสวยงาม"
 }
 ```
 
@@ -374,20 +440,16 @@ aichatbot-langchain-nextjs/
 }
 ```
 
-### 🎨 UI & Styling
+### 📐 Document Processing & RAG
 ```json
 {
-  "@radix-ui/react-*": "Radix UI components สำหรับ accessibility",
-  "shadcn/ui": "Re-usable components ที่สร้างด้วย Radix UI + Tailwind",
-  "tailwindcss": "Utility-first CSS framework",
-  "class-variance-authority": "สำหรับจัดการ CSS classes แบบ type-safe",
-  "tailwind-merge": "สำหรับรวม Tailwind CSS classes อย่างฉลาด",
-  "clsx": "Utility สำหรับสร้าง className strings แบบมีเงื่อนไข",
-  "lucide-react": "Icon library ที่ทันสมัยและสวยงาม"
+  "pdf-parse": "PDF document parsing และ text extraction",
+  "d3-dsv": "CSV และ TSV file parsing และ processing",
+  "zod": "Schema validation และ type-safe data parsing"
 }
 ```
 
-### 📐 Math & Markdown Rendering
+### � Markdown & Math Rendering
 ```json
 {
   "react-markdown": "React component สำหรับ render Markdown",
@@ -401,15 +463,11 @@ aichatbot-langchain-nextjs/
 }
 ```
 
-### ⚡ Performance & Optimization
+### ⚡ Performance & Utilities
 ```json
 {
-  "@langchain/core": "LangChain core utilities สำหรับ message handling",
-  "@langchain/tools": "LangChain tools สำหรับ function calling",
-  "tiktoken": "Token counting และ management สำหรับ AI models",
-  "uuid": "การสร้าง unique identifiers สำหรับ sessions",
-  "pg": "PostgreSQL client สำหรับ database operations และ tool calling",
-  "use-stick-to-bottom": "Auto-scroll utilities สำหรับ chat interface"
+  "use-stick-to-bottom": "Auto-scroll utilities สำหรับ chat interface",
+  "tw-animate-css": "Tailwind CSS animations utilities"
 }
 ```
 
@@ -417,7 +475,9 @@ aichatbot-langchain-nextjs/
 ```json
 {
   "eslint": "Linting tool สำหรับ JavaScript/TypeScript",
-  "postcss": "Tool สำหรับแปลง CSS",
+  "eslint-config-next": "Next.js specific ESLint configuration",
+  "@eslint/eslintrc": "ESLint configuration utilities",
+  "@tailwindcss/postcss": "PostCSS plugin สำหรับ Tailwind CSS v4",
   "@types/*": "TypeScript type definitions"
 }
 ```
@@ -446,18 +506,24 @@ npm run lint     # รัน ESLint
 - **POST `/api/chat_03_template`**: ทดสอบ prompt templates
 - **POST `/api/chat_04_stream`**: ทดสอบ streaming responses
 - **POST `/api/chat_05_history`**: ทดสอบการจัดการประวัติการสนทนา
-- **POST `/api/chat_05_optimistic`**: ทดสอบการจัดการ session แบบ optimistic
 - **POST `/api/chat_06_history_optimistic`**: ระบบประวัติแชทแบบ optimistic ขั้นสูง
 - **POST `/api/chat_06_history_optimize`**: ระบบปรับปรุงประสิทธิภาพและ token management
-- **POST `/api/chat_06_summary`**: ระบบสรุปข้อความอัตโนมัติ
 - **POST `/api/chat_07_tool_calling_postgres`**: Tool calling พร้อม PostgreSQL integration
 - **POST `/api/chat_07_tool_calling_sample`**: ตัวอย่าง Tool calling และ Function calling
+- **POST `/api/chat_08_rag`**: RAG (Retrieval Augmented Generation) implementation
+- **POST `/api/chat_09_rag_tool_calling`**: RAG พร้อม Tool Calling integration
+
+### Document & RAG Endpoints
+- **POST `/api/document_loader_embeding_pgvector/text_csv`**: CSV document processing และ vector embeddings
+- **POST `/api/document_loader_embeding_pgvector/text_csv_pdf`**: PDF + CSV document processing และ vector embeddings
 
 ### Session Management Endpoints
 - **POST `/api/chat_06_history_optimistic/session`**: จัดการ session แบบ optimistic
 - **POST `/api/chat_06_history_optimize/session`**: จัดการ session พร้อม optimization
 - **POST `/api/chat_07_tool_calling_postgres/session`**: จัดการ session พร้อม tool calling
 - **POST `/api/chat_07_tool_calling_sample/session`**: จัดการ session สำหรับ sample tools
+- **POST `/api/chat_08_rag/session`**: จัดการ session สำหรับ RAG
+- **POST `/api/chat_09_rag_tool_calling/session`**: จัดการ session สำหรับ RAG + Tool Calling
 
 ### POST /api/chat (Production)
 Endpoint หลักสำหรับจัดการการสนทนากับ AI
@@ -565,12 +631,14 @@ Endpoint หลักสำหรับจัดการการสนทน�
 - **Database Connection Pooling**: การจัดการ database connection อย่างมีประสิทธิภาพ
 - **Background Task Processing**: การประมวลผล task ในเบื้องหลังโดยไม่กระทบ UX
 - **Stream Processing**: การประมวลผล streaming response แบบ real-time
+- **Vector Search Optimization**: การปรับปรุงการค้นหา vector embeddings ด้วย pgvector
+- **Document Caching**: การ cache เอกสารที่ประมวลผลแล้วเพื่อประสิทธิภาพที่ดีขึ้น
 
 ### 🔧 **Developer Features**
 - **Modular API Design**: API endpoints แยกตาม functionality
-- **Tutorial Endpoints**: Step-by-step learning endpoints (chat_01 ถึง chat_06)
+- **Tutorial Endpoints**: Step-by-step learning endpoints (chat_01 ถึง chat_09)
 - **Progressive Learning Path**: เรียนรู้จากพื้นฐานไปสู่ขั้นสูง
-  - Basic chat → Request handling → Templates → Streaming → History → Optimization
+  - Basic chat → Request handling → Templates → Streaming → History → Optimization → Tool Calling → RAG
 - **Error Handling**: Comprehensive error handling และ user feedback
 - **Type Safety**: TypeScript ทั่วทั้งโปรเจ็กต์
 - **Context Pattern**: React Context API สำหรับ global state management
@@ -579,6 +647,8 @@ Endpoint หลักสำหรับจัดการการสนทน�
 - **Component Architecture**: Modular และ reusable component design
 - **Database Schema**: Well-structured PostgreSQL schema สำหรับ chat และ session management
 - **Performance Monitoring**: Built-in logging และ performance tracking
+- **RAG Pipeline**: Complete RAG implementation พร้อม document processing
+- **Vector Database**: pgvector integration สำหรับ semantic search
 
 ## 🔐 Environment Variables
 
@@ -595,6 +665,7 @@ Endpoint หลักสำหรับจัดการการสนทน�
 | `PG_DATABASE` | ชื่อฐานข้อมูล PostgreSQL | ไม่ |
 | `OPENAI_API_KEY` | OpenAI API key ของคุณ | ✅ ใช่ |
 | `OPENAI_MODEL_NAME` | ชื่อโมเดล OpenAI ที่ใช้ | ไม่ (default: gpt-4o-mini) |
+| `OPENAI_EMBEDDING_MODEL_NAME` | ชื่อโมเดล embedding ของ OpenAI | ไม่ (default: text-embedding-3-small) |
 | `GOOGLE_API_KEY` | Google AI API key (สำหรับ Gemini) | ไม่ |
 | `GOOGLE_MODEL_NAME` | ชื่อโมเดล Google ที่ใช้ | ไม่ (default: gemini-2.0-flash-exp) |
 | `AZURE_OPENAI_API_KEY` | Azure OpenAI API key | ไม่ |
@@ -628,6 +699,7 @@ PG_DATABASE=postgres
 # === OPENAI (ChatGPT) - จำเป็น =====
 OPENAI_API_KEY=sk-your-openai-api-key
 OPENAI_MODEL_NAME="gpt-4o-mini"
+OPENAI_EMBEDDING_MODEL_NAME="text-embedding-3-small"
 
 # === GOOGLE (Gemini) - ไม่บังคับ =====
 GOOGLE_API_KEY=your-google-api-key
@@ -709,5 +781,7 @@ PG_DATABASE=aichatbot_db
 - `Day5_Note.md` - การจัดการ Chat History และ Sessions
 - `Day6_Note.md` - การปรับปรุงประสิทธิภาพและ Advanced Features
 - `Day7_Note.md` - Tool Calling, Function Calling และ PostgreSQL Integration
+- `Day8_Note.md` - RAG (Retrieval Augmented Generation) และ Document Processing
+- `RAG_TROUBLESHOOTING.md` - คู่มือแก้ไขปัญหา RAG
 
 หรือสร้าง issue ใน repository
