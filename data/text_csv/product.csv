@@ -1,0 +1,101 @@
+﻿id,pid,name,description,price,stock,category,image_url
+1,P001,Running Shoes,รองเท้าวิ่งน้ำหนักเบา รองรับแรงกระแทก เหมาะกับการวิ่งระยะไกล,2590,156,Sports,/images/p1.png
+2,P002,Training Shoes,รองเท้าฝึกซ้อมในยิม พื้นยึดเกาะดี ระบายอากาศ,2390,89,Sports,/images/p2.png
+3,P003,Football Boots,รองเท้าสตั๊ดสำหรับสนามหญ้า เกาะพื้นดี ยิงแม่นยำ,3290,34,Sports,/images/p3.png
+4,P004,Yoga Mat,แผ่นโยคะกันลื่น หนา พกพาง่าย เหมาะโยคะ/พิลาทิส,990,78,Fitness,/images/p4.png
+5,P005,Smartwatch Series A,นาฬิกาอัจฉริยะ ติดตามสุขภาพ นับก้าว แจ้งเตือนสาย,4990,123,Electronics,/images/p5.png
+6,P006,Wireless Earbuds,หูฟังไร้สาย เสียงชัด แบตอึด กันน้ำระดับ IPX4,2190,67,Electronics,/images/p6.png
+7,P007,4K Action Camera,กล้องแอคชัน 4K กันสั่น กันน้ำ เหมาะเที่ยวผจญภัย,5990,45,Electronics,/images/p7.png
+8,P008,Office Chair,เก้าอี้สำนักงานรองรับสรีระ ปรับระดับได้ นั่งสบาย,3990,29,Furniture,/images/p8.png
+9,P009,Gaming Mouse,เมาส์เกมมิง DPI สูง ปรับน้ำหนัก ปุ่มลัดครบ,1290,134,Electronics,/images/p9.png
+10,P010,Mechanical Keyboard,คีย์บอร์ดแมคคานิค ปุ่มสัมผัสดี ไฟ RGB,1890,91,Electronics,/images/p10.png
+11,P011,"Laptop Sleeve 14""",ซองใส่แล็ปท็อป กันรอย ขนาดพอดีเครื่อง 14 นิ้ว,690,156,Electronics,/images/p11.png
+12,P012,USB-C Hub 6-in-1,ฮับเพิ่มพอร์ต HDMI/USB/SD รองรับชาร์จผ่าน,1190,73,Electronics,/images/p12.png
+13,P013,Portable SSD 1TB,SSD พกพาโอนถ่ายข้อมูลรวดเร็ว ทนทาน,3290,12,Electronics,/images/p13.png
+14,P014,HDMI Cable 2m,สาย HDMI รองรับ 4K 60Hz คุณภาพสัญญาณคมชัด,250,189,Electronics,/images/p14.png
+15,P015,"Monitor 27"" 2K IPS",จอภาพ 27 นิ้ว คมชัด มุมมองกว้าง เหมาะทำงาน/แต่งภาพ,6990,34,Electronics,/images/p15.png
+16,P016,Desk Lamp LED,โคมไฟตั้งโต๊ะ ปรับระดับแสง ถนอมสายตา,590,167,Home,/images/p16.png
+17,P017,Standing Desk,โต๊ะทำงานปรับสูง-ต่ำ ลดอาการเมื่อยล้า,8990,56,Furniture,/images/p17.png
+18,P018,Coffee Maker,เครื่องชงกาแฟ ใช้งานง่าย ทำเอสเปรสโซ/ลาเต้,3490,98,Home,/images/p18.png
+19,P019,Air Fryer 4L,หม้อทอดไร้น้ำมัน ทำอาหารกรอบนอกนุ่มใน,2190,145,Kitchen,/images/p19.png
+20,P020,Blender 600W,เครื่องปั่นสมูทตี้ กำลังสูง โถทนทาน,1290,23,Kitchen,/images/p20.png
+21,P021,Water Bottle 1L,ขวดน้ำกีฬา 1 ลิตร ปลอดสาร BPA,390,178,Outdoors,/images/p21.png
+22,P022,Camping Tent 2P,เต็นท์ 2 คน กันน้ำ ระบายอากาศดี ตั้งง่าย,2490,67,Outdoors,/images/p22.png
+23,P023,Trekking Backpack 35L,กระเป๋าเป้เดินป่า 35 ลิตร รองรับหลัง ระบายอากาศดี,1890,134,Outdoors,/images/p23.png
+24,P024,Rain Jacket,เสื้อกันฝน น้ำหนักเบา พับเก็บง่าย กันน้ำได้ดี,1590,45,Outdoors,/images/p24.png
+25,P025,Sunscreen SPF50,ครีมกันแดด SPF50 กันน้ำ ไม่เหนอะหนะ,290,87,Beauty,/images/p25.png
+26,P026,Yoga Blocks (Pair),บล็อกโยคะ โฟมแน่น ช่วยทรงตัว ท่าที่ยาก,390,156,Fitness,/images/p26.png
+27,P027,Resistance Bands Set,ยางยืดออกกำลังกาย หลายแรงต้าน พร้อมถุงผ้า,450,112,Fitness,/images/p27.png
+28,P028,Foam Roller 45cm,โฟมโรลเลอร์ คลายกล้ามเนื้อ หลังออกกำลัง,590,29,Fitness,/images/p28.png
+29,P029,Protein Shaker 700ml,เชคเกอร์โปรตีน ฝาปิดแน่น ไม่รั่วซึม,250,178,Fitness,/images/p29.png
+30,P030,Smart Scale Bluetooth,ตาชั่งอัจฉริยะ วัดไขมัน กล้ามเนื้อ เชื่อมต่อแอป,990,67,Electronics,/images/p30.png
+31,P031,Router WiFi 6,เราเตอร์ WiFi 6 สัญญาณแรง รองรับอุปกรณ์มาก,2590,134,Electronics,/images/p31.png
+32,P032,Power Bank 20000mAh,เพาเวอร์แบงก์ ชาร์จเร็ว PD/QC พร้อมจอแสดงผล,1290,45,Electronics,/images/p32.png
+33,P033,Electric Kettle 1.8L,กาต้มน้ำไฟฟ้า ตัดไฟอัตโนมัติ ฐานหมุน 360°,690,87,Kitchen,/images/p33.png
+34,P034,Rice Cooker 1.8L,หม้อหุงข้าว อุ่นอัตโนมัติ หม้อหนาเคลือบ,1190,156,Kitchen,/images/p34.png
+35,P035,Vacuum Cleaner 1400W,เครื่องดูดฝุ่น ไซโคลน ไส้กรอง HEPA,2590,12,Home,/images/p35.png
+36,P036,Steam Iron,เตารีดไอน้ำ รีดลื่น ลดรอยยับ ร้อนเร็ว,790,189,Home,/images/p36.png
+37,P037,Wall Clock Silent,นาฬิกาแขวน เสียงเงียบ ดีไซน์มินิมอล,350,78,Home,/images/p37.png
+38,P038,Photo Frame A4,กรอบรูป A4 วัสดุคุณภาพ แขวน/วางได้,150,123,Home,/images/p38.png
+39,P039,Notebook A5 100p,สมุดบันทึก A5 100 แผ่น กระดาษถนอมสายตา,89,67,Office,/images/p39.png
+40,P040,Gel Pen 0.5mm,ปากกาเจล เขียนลื่น แห้งไว หมึกคมชัด,15,145,Office,/images/p40.png
+41,P041,File Organizer,กล่องจัดระเบียบเอกสาร วางโต๊ะทำงาน,250,23,Office,/images/p41.png
+42,P042,Mouse Pad XL,แผ่นรองเมาส์ขนาดใหญ่ พื้นผิวลื่น ฐานยางกันลื่น,290,178,Gaming,/images/p42.png
+43,P043,Gaming Headset,หูฟังเกมมิง ไมค์ตัดเสียง รอบทิศทาง,1490,67,Gaming,/images/p43.png
+44,P044,Webcam 1080p,เว็บแคม Full HD สำหรับประชุมออนไลน์,1090,134,Electronics,/images/p44.png
+45,P045,Tripod Aluminum,ขาตั้งกล้อง อลูมิเนียม ปรับสูงต่ำได้,490,45,Electronics,/images/p45.png
+46,P046,Smartphone Stand,แท่นวางมือถือ ปรับมุม มั่นคง,120,87,Electronics,/images/p46.png
+47,P047,LED Strip 5m RGB,ไฟเส้น LED เปลี่ยนสี ควบคุมด้วยรีโมต,390,156,Home,/images/p47.png
+48,P048,Portable Fan USB,พัดลมพกพา ต่อ USB เงียบ ประหยัดไฟ,290,12,Home,/images/p48.png
+49,P049,Curtain Blackout,ผ้าม่านกันแสง หนาทึบ ลดความร้อน,690,189,Home,/images/p49.png
+50,P050,Laundry Basket Foldable,ตะกร้าผ้า พับเก็บได้ น้ำหนักเบา,250,78,Home,/images/p50.png
+51,P051,"Smart TV 55"" 4K",สมาร์ททีวี 55 นิ้ว ความละเอียด 4K รองรับแอปสตรีมมิง,14990,123,Electronics,/images/p51.png
+52,P052,Soundbar 2.1,ซาวด์บาร์พร้อมซับวูฟเฟอร์ เสียงกระหึ่ม ดูหนังมันส์,3990,67,Electronics,/images/p52.png
+53,P053,Drone 4K Camera,โดรนกล้อง 4K บินนิ่ง กันสั่น ถ่ายวิดีโอสวยคม,7990,145,Electronics,/images/p53.png
+54,P054,"E-book Reader 7""",เครื่องอ่านอีบุ๊ก หน้าจอ E‑Ink อ่านสบายตา,4290,23,Electronics,/images/p54.png
+55,P055,Bluetooth Speaker,ลำโพงบลูทูธ พกพาง่าย กันน้ำระดับ IPX5,1290,178,Electronics,/images/p55.png
+56,P056,ANC Headphones,หูฟังครอบหู ตัดเสียงรบกวน แบตอึด,3490,67,Electronics,/images/p56.png
+57,P057,Fitness Tracker Band,สายรัดข้อมือวัดชีพจร ติดตามการนอน การออกกำลัง,1390,134,Electronics,/images/p57.png
+58,P058,Smart Light Bulb RGB,หลอดไฟอัจฉริยะ เปลี่ยนสีได้ ควบคุมผ่านแอป/เสียง,390,45,Home,/images/p58.png
+59,P059,Robot Vacuum,หุ่นยนต์ดูดฝุ่น กวาด-ถู ตั้งเวลาได้,5990,87,Home,/images/p59.png
+60,P060,Air Purifier HEPA,เครื่องฟอกอากาศ ไส้กรอง HEPA ลดฝุ่นและกลิ่น,3290,156,Home,/images/p60.png
+61,P061,Dehumidifier 2L,เครื่องลดความชื้น เหมาะห้องชื้น/ฤดูฝน,2590,12,Home,/images/p61.png
+62,P062,Humidifier Ultrasonic,เครื่องเพิ่มความชื้น ละอองไอน้ำละเอียด เงียบ,890,189,Home,/images/p62.png
+63,P063,Electric Toothbrush,แปรงสีฟันไฟฟ้า ระบบโซนิค ทำความสะอาดล้ำลึก,1290,78,Beauty,/images/p63.png
+64,P064,Hair Dryer Ionic,ไดร์เป่าผมไอออนิค ลดชี้ฟู ปรับความร้อนหลายระดับ,990,123,Beauty,/images/p64.png
+65,P065,Beard Trimmer,ปัตตาเลี่ยนแต่งหนวด เงียบ น้ำหนักเบา,690,67,Beauty,/images/p65.png
+66,P066,Rice Storage 10kg,กล่องเก็บข้าวสาร 10 กก. กันชื้น มีสเกลตวง,590,145,Kitchen,/images/p66.png
+67,P067,Knife Set 6pcs,มีดเชฟชุด 6 ชิ้น พร้อมแท่นวาง,890,23,Kitchen,/images/p67.png
+68,P068,Non-stick Frying Pan 28cm,กระทะเคลือบ ไม่ติดกระทะ ล้างง่าย,690,178,Kitchen,/images/p68.png
+69,P069,Cast Iron Skillet 26cm,กระทะเหล็กหล่อ เก็บความร้อนดี เหมาะสเต๊ก,1290,67,Kitchen,/images/p69.png
+70,P070,Baking Tray Set,ถาดอบขนม ชุด 3 ขนาด เคลือบไม่ติด,490,134,Kitchen,/images/p70.png
+71,P071,Pressure Cooker 6L,หม้อความดัน 6 ลิตร เร็ว ประหยัดเวลา,1990,45,Kitchen,/images/p71.png
+72,P072,Slow Cooker 3.5L,หม้อสโลว์คุก ทําสตูว์นุ่มละมุน,1490,87,Kitchen,/images/p72.png
+73,P073,Toaster 2-Slice,เครื่องปิ้งขนมปัง 2 แผ่น ปรับความกรอบได้,690,156,Kitchen,/images/p73.png
+74,P074,Sandwich Maker,เครื่องทำแซนด์วิช แผ่นร้อนคู่ ไม่ติด,690,12,Kitchen,/images/p74.png
+75,P075,Ice Maker Countertop,เครื่องทำน้ำแข็งตั้งโต๊ะ ทำก้อนได้รวดเร็ว,3990,189,Kitchen,/images/p75.png
+76,P076,Water Filter Pitcher,เหยือกกรองน้ำ ดื่มสะอาด ลดคลอรีน,790,78,Kitchen,/images/p76.png
+77,P077,Food Processor 800W,เครื่องเตรียมอาหาร สับ/บด/ผสม,1990,123,Kitchen,/images/p77.png
+78,P078,Bread Maker Auto,เครื่องทำขนมปัง ตั้งเวลาล่วงหน้าได้,2990,67,Kitchen,/images/p78.png
+79,P079,Waffle Maker,เครื่องทำวาฟเฟิล กรอบนอกนุ่มใน,890,145,Kitchen,/images/p79.png
+80,P080,Coffee Grinder Burr,เครื่องบดกาแฟแบบเฟือง ปรับความละเอียดได้,1490,23,Kitchen,/images/p80.png
+81,P081,DSLR Camera Body,กล้อง DSLR คุณภาพสูง เหมาะฝึกถ่ายภาพจริงจัง,15990,178,Electronics,/images/p81.png
+82,P082,Lens 50mm F1.8,เลนส์ไพรม์ 50มม. ถ่ายคนหลังละลาย,3990,67,Electronics,/images/p82.png
+83,P083,Photo Printer A4,เครื่องพิมพ์ภาพ A4 สีสด รายละเอียดคม,5490,134,Electronics,/images/p83.png
+84,P084,External Microphone USB,ไมค์ USB สำหรับพอดแคสต์/สตรีมมิง เสียงใส,1890,45,Electronics,/images/p84.png
+85,P085,"Ring Light 12""",ไฟวงแหวน ปรับอุณหภูมิสีได้ เหมาะถ่ายวิดีโอ,690,87,Electronics,/images/p85.png
+86,P086,Green Screen Backdrop,ผ้าฉากสีเขียว ถ่ายวิดีโอ ตัดต่อ keying,990,156,Electronics,/images/p86.png
+87,P087,Capture Card HDMI,อุปกรณ์จับภาพ HDMI สำหรับสตรีมเกม,1990,12,Electronics,/images/p87.png
+88,P088,Streaming Webcam 4K,เว็บแคม 4K โฟกัสไว เหมาะสตรีม/ประชุม,2490,189,Electronics,/images/p88.png
+89,P089,Tripod Mini,ขาตั้งกล้องขนาดเล็ก ตั้งโต๊ะ พกสะดวก,290,78,Electronics,/images/p89.png
+90,P090,Camera Bag Sling,กระเป๋ากล้องแบบสลิง ช่องกันกระแทก,890,123,Electronics,/images/p90.png
+91,P091,Smart Door Lock,กุญแจประตูอัจฉริยะ ปลดล็อกผ่านแอป/รหัส,3990,67,Home,/images/p91.png
+92,P092,Video Doorbell,กริ่งประตูติดกล้อง แจ้งเตือนผ่านมือถือ,2590,145,Home,/images/p92.png
+93,P093,Wi-Fi Security Camera,กล้องวงจรปิด Wi‑Fi หมุนได้ แจ้งเตือนตรวจจับการเคลื่อนไหว,1190,23,Home,/images/p93.png
+94,P094,Smoke Detector,เครื่องตรวจจับควัน แจ้งเตือนทันทีเมื่อมีควันไฟ,590,178,Home,/images/p94.png
+95,P095,Smart Plug Wi‑Fi,ปลั๊กอัจฉริยะ ตั้งเวลาปิด/เปิด ควบคุมผ่านแอป,390,67,Home,/images/p95.png
+96,P096,Smart Thermometer Room,เครื่องวัดอุณหภูมิ/ความชื้น เชื่อมต่อแอป,490,134,Home,/images/p96.png
+97,P097,Baby Monitor,อุปกรณ์ดูแลทารก มีกล้องและเสียงสองทาง,2790,45,Home,/images/p97.png
+98,P098,Automatic Pet Feeder,เครื่องให้อาหารสัตว์อัตโนมัติ ตั้งเวลาได้,2190,87,Home,/images/p98.png
+99,P099,Cat Litter Box Covered,กระบะทรายแมว แบบปิด กันกลิ่น กระเด็นน้อย,1290,156,Home,/images/p99.png
+100,P100,Dog Leash Retractable,สายจูงสุนัข แบบปรับยาว-สั้นอัตโนมัติ,390,12,Outdoors,/images/p100.png
