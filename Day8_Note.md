@@ -2576,7 +2576,7 @@ let encPromise: Promise<Encoding> | undefined
  */
 async function getEncoder(): Promise<Encoding> {
   if (!encPromise) {
-    encPromise = encodingForModel(process.env.OPENAI_MODEL_NAME || "gpt-4o-mini").catch(() =>
+    encPromise = encodingForModel("gpt-4o-mini").catch(() =>
       encodingForModel("gpt-4")
     )
   }
@@ -3080,6 +3080,47 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!
 )
 
+// เพิ่ม datetime tool หลังจาก getSalesDataTool
+const getCurrentDateTimeTool = new DynamicStructuredTool({
+  name: "get_current_datetime",
+  description: "ดูวันที่และเวลาปัจจุบัน สามารถระบุรูปแบบการแสดงผลได้",
+  schema: z.object({
+    format: z.enum(["full", "date", "time", "iso"]).optional().describe("รูปแบบการแสดงผล: full=เต็ม, date=วันที่อย่างเดียว, time=เวลาอย่างเดียว, iso=รูปแบบ ISO")
+  }),
+  func: async ({ format = "full" }) => {
+    console.log(`🔧 TOOL CALLED: get_current_datetime with format="${format}"`);
+    try {
+      const now = new Date()
+      const thailandTime = new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        weekday: 'long'
+      })
+
+      switch (format) {
+        case "date":
+          return `วันที่ปัจจุบัน: ${thailandTime.format(now).split(' ').slice(0, 4).join(' ')}`
+        case "time":
+          const timeOnly = thailandTime.format(now).split(' ').slice(-1)[0]
+          return `เวลาปัจจุบัน: ${timeOnly} น.`
+        case "iso":
+          return `วันที่และเวลาในรูปแบบ ISO: ${now.toISOString()}`
+        case "full":
+        default:
+          return `วันที่และเวลาปัจจุบัน: ${thailandTime.format(now)} (เขตเวลาประเทศไทย)`
+      }
+    } catch (error) {
+      console.error('Error getting datetime:', error)
+      return `เกิดข้อผิดพลาดในการดึงข้อมูลวันที่และเวลา: ${error instanceof Error ? error.message : 'Unknown error'}`
+    }
+  }
+})
+
 // ===============================================
 // ✨ NEW: สร้าง Vector Store สำหรับ Document Search
 // ===============================================
@@ -3116,9 +3157,9 @@ const searchDocumentsTool = new DynamicStructuredTool({
     description: "ค้นหาข้อมูลจากเอกสารที่เก็บไว้ในระบบ เช่น ข้อมูลร้าน, สินค้า, การขาย, หรือข้อมูลอื่นๆ ที่อัปโหลดไว้ในรูปแบบ PDF, CSV, TXT",
     schema: z.object({
       query: z.string().describe("คำค้นหาสำหรับค้นหาข้อมูลในเอกสาร เช่น 'ข้อมูลร้าน', 'สินค้า', 'ราคา', 'การขาย' เป็นต้น"),
-      limit: z.number().optional().default(5).describe("จำนวนผลลัพธ์ที่ต้องการ (ค่าเริ่มต้น 5)")
+      limit: z.number().optional().default(200).describe("จำนวนผลลัพธ์ที่ต้องการ (ค่าเริ่มต้น 200)")
     }),
-    func: async ({ query, limit = 5 }) => {
+    func: async ({ query, limit = 200 }) => {
       console.log(`🔧 TOOL CALLED: search_documents with query="${query}", limit=${limit}`);
       try {
         // สร้าง vector store
@@ -3324,7 +3365,7 @@ ${tableRows}
     },
 })
 
-const tools = [searchDocumentsTool, getProductInfoTool, getSalesDataTool];
+const tools = [searchDocumentsTool, getProductInfoTool, getSalesDataTool,getCurrentDateTimeTool];
 
 // ===============================================
 // ฟังก์ชันสำหรับนับ Token (Tiktoken)
@@ -3348,7 +3389,7 @@ let encPromise: Promise<Encoding> | undefined
  */
 async function getEncoder(): Promise<Encoding> {
   if (!encPromise) {
-    encPromise = encodingForModel(process.env.OPENAI_MODEL_NAME || "gpt-4o-mini").catch(() =>
+    encPromise = encodingForModel("gpt-4o-mini").catch(() =>
       encodingForModel("gpt-4")
     )
   }
@@ -3565,6 +3606,7 @@ export async function POST(req: NextRequest) {
       1. **search_documents** - สำหรับค้นหาข้อมูลจากเอกสารที่อัปโหลดไว้ในระบบ (PDF, CSV, TXT)
       2. **get_product_info** - สำหรับค้นหาข้อมูลสินค้า ราคา และจำนวนในสต็อกจากฐานข้อมูล
       3. **get_sales_data** - สำหรับดูประวัติการขาย
+      4. **get_current_datetime** - สำหรับดูวันที่และเวลาปัจจุบัน
       
       **กฎการใช้ tools:**
       
@@ -3597,6 +3639,11 @@ export async function POST(req: NextRequest) {
       - เช่น "เมาส์" ลองค้นหาด้วย "mouse", "gaming mouse", "เมาส์เกม"
       - เช่น "แมคบุ๊ค" ลองค้นหาด้วย "MacBook", "Mac"
       - เช่น "กาแฟ" ลองค้นหาด้วย "coffee", "espresso"
+
+      สำหรับวันที่และเวลา:
+      - เมื่อผู้ใช้ถามเกี่ยวกับเวลา วันที่ ให้ใช้ tool get_current_datetime
+      - สามารถระบุ format ได้: full, date, time, iso
+      - ตัวอย่างคำถาม: "วันนี้วันที่เท่าไหร่", "ตอนนี้กี่โมงแล้ว", "เวลาปัจจุบัน"
       
       หากเกิด DATABASE_CONNECTION_ERROR ให้ตอบว่า "ขออภัยครับ ขณะนี้ไม่สามารถเข้าถึงฐานข้อมูลได้ กรุณาลองใหม่อีกครั้งในภายหลัง"
       
