@@ -5092,3 +5092,6 @@ export default async function handler(req: NextRequest) {
 - ✅ Comprehensive monitoring
 
 มีคำถามเพิ่มเติมเกี่ยวกับ deployment? สามารถดู troubleshooting guide หรือติดต่อทีมพัฒนาได้! 🚀
+
+#### Response
+"คู่มือนี้ครอบคลุมการ deploy AI Chatbot บน Vercel และ Docker Container พร้อมการปรับแต่งประสิทธิภาพและการ monitor ระบบอย่างละเอียด"
