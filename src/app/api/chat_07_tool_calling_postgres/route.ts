@@ -46,6 +46,47 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!
 )
 
+// เพิ่ม datetime tool หลังจาก getSalesDataTool
+const getCurrentDateTimeTool = new DynamicStructuredTool({
+  name: "get_current_datetime",
+  description: "ดูวันที่และเวลาปัจจุบัน สามารถระบุรูปแบบการแสดงผลได้",
+  schema: z.object({
+    format: z.enum(["full", "date", "time", "iso"]).optional().describe("รูปแบบการแสดงผล: full=เต็ม, date=วันที่อย่างเดียว, time=เวลาอย่างเดียว, iso=รูปแบบ ISO")
+  }),
+  func: async ({ format = "full" }) => {
+    console.log(`🔧 TOOL CALLED: get_current_datetime with format="${format}"`);
+    try {
+      const now = new Date()
+      const thailandTime = new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        weekday: 'long'
+      })
+
+      switch (format) {
+        case "date":
+          return `วันที่ปัจจุบัน: ${thailandTime.format(now).split(' ').slice(0, 4).join(' ')}`
+        case "time":
+          const timeOnly = thailandTime.format(now).split(' ').slice(-1)[0]
+          return `เวลาปัจจุบัน: ${timeOnly} น.`
+        case "iso":
+          return `วันที่และเวลาในรูปแบบ ISO: ${now.toISOString()}`
+        case "full":
+        default:
+          return `วันที่และเวลาปัจจุบัน: ${thailandTime.format(now)} (เขตเวลาประเทศไทย)`
+      }
+    } catch (error) {
+      console.error('Error getting datetime:', error)
+      return `เกิดข้อผิดพลาดในการดึงข้อมูลวันที่และเวลา: ${error instanceof Error ? error.message : 'Unknown error'}`
+    }
+  }
+})
+
 // ===============================================
 // ✨ NEW: สร้าง Tools สำหรับคุยกับ Supabase
 // ===============================================
@@ -200,7 +241,7 @@ ${tableRows}
     },
 })
 
-const tools = [getProductInfoTool, getSalesDataTool];
+const tools = [getProductInfoTool, getSalesDataTool, getCurrentDateTimeTool];
 
 // ===============================================
 // ฟังก์ชันสำหรับนับ Token (Tiktoken)
@@ -440,6 +481,7 @@ export async function POST(req: NextRequest) {
       คุณมี tools ที่สามารถใช้ค้นหาข้อมูลสินค้าและการขายได้ ได้แก่:
       1. get_product_info - สำหรับค้นหาข้อมูลสินค้า ราคา และจำนวนในสต็อก
       2. get_sales_data - สำหรับดูประวัติการขาย
+      3. get_current_datetime - สำหรับดูวันที่และเวลาปัจจุบัน
       
       เมื่อผู้ใช้ถามเกี่ยวกับสินค้าใดๆ ให้ใช้ tool get_product_info เพื่อค้นหาข้อมูลจากฐานข้อมูลก่อนตอบ
       ห้ามเดาหรือสร้างข้อมูลขึ้นมาเอง ให้ใช้ข้อมูลจาก tool เท่านั้น
@@ -449,6 +491,11 @@ export async function POST(req: NextRequest) {
       - เช่น "เมาส์" ลองค้นหาด้วย "mouse", "gaming mouse", "เมาส์เกม"
       - เช่น "แมคบุ๊ค" ลองค้นหาด้วย "MacBook", "Mac"
       - เช่น "กาแฟ" ลองค้นหาด้วย "coffee", "espresso"
+
+      สำหรับวันที่และเวลา:
+      - เมื่อผู้ใช้ถามเกี่ยวกับเวลา วันที่ ให้ใช้ tool get_current_datetime
+      - สามารถระบุ format ได้: full, date, time, iso
+      - ตัวอย่างคำถาม: "วันนี้วันที่เท่าไหร่", "ตอนนี้กี่โมงแล้ว", "เวลาปัจจุบัน"
       
       หากเกิด DATABASE_CONNECTION_ERROR ให้ตอบว่า "ขออภัยครับ ขณะนี้ไม่สามารถเข้าถึงฐานข้อมูลได้ กรุณาลองใหม่อีกครั้งในภายหลัง"
       หากมีสินค้าหลายรายการที่ตรงกับคำค้น ให้แสดงรายการทั้งหมดในรูปแบบตาราง Markdown
